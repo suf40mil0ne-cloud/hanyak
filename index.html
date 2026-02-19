@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>한눈에 예약 - 공공 문화시설 예약 캘린더</title>
+  <title>한약 - 아이와 함께 갈 곳을 한눈에</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link href="/style.css" rel="stylesheet" />
 </head>
 <body>
@@ -16,28 +16,29 @@
 
   <header class="site-header">
     <div class="brand">
-      <span class="brand-mark">예약</span>
-      <span class="brand-title">한눈에</span>
+      <span class="brand-mark">한약</span>
+      <span class="brand-title">아이와 예약</span>
     </div>
     <nav class="nav">
-      <a href="#list">시설목록</a>
-      <a href="#how">사용방법</a>
-      <a href="#footer">문의</a>
+      <a href="#public">공공기관</a>
+      <a href="#private">민간시설</a>
+      <a href="#farm">농장·목장</a>
+      <a href="#popup">팝업스토어</a>
     </nav>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">공공기관 과학관 · 미술관 · 박물관 · 체험관</p>
-        <h1>시설명과 예약 날짜를<br />한곳에서 확인하세요.</h1>
+        <p class="eyebrow">아이와 함께 가는 곳, 예약 날짜 먼저 확인</p>
+        <h1>시설명과 예약 날짜를<br />한 곳에서 확인하세요.</h1>
         <p class="subtitle">
-          기관마다 다른 오픈 일정과 관람 가능 날짜를 모아 보여주는 통합 예약 캘린더.
-          오늘은 데모 데이터로 흐름을 확인할 수 있어요.
+          "한약"은 자녀와 갈 곳을 찾는 부모를 위해 예약 일정과 이용 가능 날짜를 정리합니다.
+          기관별로 달라지는 오픈일을 한 화면에서 비교해 보세요.
         </p>
         <div class="hero-cta">
-          <button class="primary" id="scrollToList">바로 보기</button>
-          <button class="ghost">즐겨찾기 추가</button>
+          <button class="primary" id="scrollToList">섹터 보기</button>
+          <button class="ghost">알림 신청</button>
         </div>
         <div class="hero-meta">
           <div>
@@ -49,8 +50,8 @@
             <strong id="todayLabel">-</strong>
           </div>
           <div>
-            <span class="label">업데이트</span>
-            <strong>샘플 데이터</strong>
+            <span class="label">대상</span>
+            <strong>자녀 동반 가족</strong>
           </div>
         </div>
       </div>
@@ -78,59 +79,66 @@
           </div>
         </div>
         <div class="panel-card notice">
-          <h3>핵심 포인트</h3>
+          <h3>부모를 위한 큐레이션</h3>
           <ul>
-            <li>시설명과 예약 날짜 중심으로 정리</li>
-            <li>선택 날짜에 가능한 시설만 표시</li>
-            <li>지역과 유형으로 빠른 판단</li>
+            <li>예약 오픈일을 놓치지 않게 요약</li>
+            <li>아이와 함께 가능한 시설 우선 정리</li>
+            <li>예약 페이지까지 바로 이동</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <section class="section" id="list">
+    <section class="section" id="public">
       <div class="section-head">
-        <h2>예약 일정 모아보기</h2>
-        <p>선택 날짜에 이용 가능한 시설을 우선으로 보여줍니다.</p>
+        <h2>1번 섹터 · 공공기관 운영 시설</h2>
+        <p>과학관, 미술관, 박물관, 체험관 등 공공기관 중심</p>
       </div>
       <div class="chip-row" id="typeChips"></div>
-      <div class="list" id="facilityList"></div>
-      <p class="empty" id="emptyState">조건에 맞는 시설이 없습니다. 날짜나 검색어를 바꿔보세요.</p>
+      <div class="list" id="publicList"></div>
+      <p class="empty" id="publicEmpty">조건에 맞는 시설이 없습니다. 날짜나 검색어를 바꿔보세요.</p>
     </section>
 
-    <section class="section how" id="how">
+    <section class="section" id="private">
       <div class="section-head">
-        <h2>사용 방법</h2>
-        <p>시설명과 날짜만 기억해도 충분합니다.</p>
+        <h2>2번 섹터 · 민간 운영 시설</h2>
+        <p>추가 예정입니다. 천천히 채워볼게요.</p>
       </div>
-      <div class="how-grid">
-        <div class="how-card">
-          <span class="badge">1</span>
-          <h3>시설명 검색</h3>
-          <p>찾고 싶은 과학관/미술관/박물관 이름을 입력하세요.</p>
-        </div>
-        <div class="how-card">
-          <span class="badge">2</span>
-          <h3>원하는 날짜 선택</h3>
-          <p>선택한 날짜에 예약 가능한 시설만 남습니다.</p>
-        </div>
-        <div class="how-card">
-          <span class="badge">3</span>
-          <h3>오픈일 확인</h3>
-          <p>예약 오픈 일정과 진행 기간을 한눈에 확인하세요.</p>
+      <div class="list">
+        <div class="card placeholder">
+          <div class="card-title">준비 중</div>
+          <p>민간 시설은 우선 공간만 만들어 두었습니다.</p>
         </div>
       </div>
+    </section>
+
+    <section class="section" id="farm">
+      <div class="section-head">
+        <h2>3번 섹터 · 농장 & 목장 체험</h2>
+        <p>딸기·사과 농장 등 아이와 함께 체험 가능한 곳</p>
+      </div>
+      <div class="list" id="farmList"></div>
+      <p class="empty" id="farmEmpty">조건에 맞는 농장이 없습니다. 날짜나 검색어를 바꿔보세요.</p>
+    </section>
+
+    <section class="section" id="popup">
+      <div class="section-head">
+        <h2>4번 섹터 · 진행 중인 팝업스토어</h2>
+        <p>아이 동반 가능 팝업스토어를 모아봅니다.</p>
+      </div>
+      <div class="list" id="popupList"></div>
+      <p class="empty" id="popupEmpty">조건에 맞는 팝업스토어가 없습니다.</p>
     </section>
   </main>
 
   <footer class="footer" id="footer">
     <div>
-      <strong>한눈에 예약</strong>
-      <p>공공 문화시설 예약 일정 통합 보기 프로젝트</p>
+      <strong>한약</strong>
+      <p>자녀와 갈 곳을 찾는 부모를 위한 예약 일정 허브</p>
     </div>
     <div class="footer-meta">
       <span>문의: hello@reservation.kr</span>
-      <span>데모 버전 v0.1</span>
+      <span>데모 버전 v0.2</span>
     </div>
   </footer>
 
