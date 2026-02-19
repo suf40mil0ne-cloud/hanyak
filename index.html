@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>한약 - 아이와 함께 갈 곳을 한눈에</title>
+  <title>한약 - 아이와 예약을 한눈에</title>
+  <meta name="description" content="한약은 아이와 함께 갈 곳을 찾는 부모를 위해 시설명과 예약 날짜를 한눈에 정리한 큐레이션 홈입니다." />
+  <meta name="robots" content="index,follow" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -17,7 +19,7 @@
   <header class="site-header">
     <div class="brand">
       <span class="brand-mark">한약</span>
-      <span class="brand-title">아이와 예약</span>
+      <span class="brand-title">한눈에 예약</span>
     </div>
     <nav class="nav">
       <a href="#public">공공기관</a>
@@ -31,10 +33,10 @@
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">아이와 함께 가는 곳, 예약 날짜 먼저 확인</p>
-        <h1>시설명과 예약 날짜를<br />한 곳에서 확인하세요.</h1>
+        <h1><span class="accent">한약</span>에서<br />예약 정보를 한눈에.</h1>
         <p class="subtitle">
-          "한약"은 자녀와 갈 곳을 찾는 부모를 위해 예약 일정과 이용 가능 날짜를 정리합니다.
-          기관별로 달라지는 오픈일을 한 화면에서 비교해 보세요.
+          자녀와 갈 곳을 찾는 부모를 위해 시설명과 예약 날짜를 정리합니다.
+          공공기관부터 체험 농장까지, 중요한 정보를 빠르게 비교해 보세요.
         </p>
         <div class="hero-cta">
           <button class="primary" id="scrollToList">섹터 보기</button>
@@ -61,7 +63,7 @@
           <div class="filter-stack">
             <label class="field">
               시설명 검색
-              <input type="text" id="searchInput" placeholder="예: 국립중앙박물관" />
+              <input type="text" id="searchInput" placeholder="예: 시립미술관" />
             </label>
             <label class="field">
               원하는 날짜
@@ -89,10 +91,21 @@
       </div>
     </section>
 
+    <section class="ad-strip" aria-label="광고 영역">
+      <div class="ad-card">
+        <span class="ad-label">광고</span>
+        <div class="ad-slot">AdSense 1 (반응형)</div>
+      </div>
+      <div class="ad-card">
+        <span class="ad-label">광고</span>
+        <div class="ad-slot">AdSense 2 (반응형)</div>
+      </div>
+    </section>
+
     <section class="section" id="public">
       <div class="section-head">
-        <h2>1번 섹터 · 공공기관 운영 시설</h2>
-        <p>과학관, 미술관, 박물관, 체험관 등 공공기관 중심</p>
+        <h2>공공기관 운영 시설</h2>
+        <p>국립 · 시립 · 구립 기관을 포함한 문화·체험 시설</p>
       </div>
       <div class="chip-row" id="typeChips"></div>
       <div class="list" id="publicList"></div>
@@ -101,7 +114,7 @@
 
     <section class="section" id="private">
       <div class="section-head">
-        <h2>2번 섹터 · 민간 운영 시설</h2>
+        <h2>민간 운영 시설</h2>
         <p>추가 예정입니다. 천천히 채워볼게요.</p>
       </div>
       <div class="list">
@@ -114,8 +127,8 @@
 
     <section class="section" id="farm">
       <div class="section-head">
-        <h2>3번 섹터 · 농장 & 목장 체험</h2>
-        <p>딸기·사과 농장 등 아이와 함께 체험 가능한 곳</p>
+        <h2>농장 & 목장 체험</h2>
+        <p>아이와 함께하는 계절 체험을 모았습니다.</p>
       </div>
       <div class="list" id="farmList"></div>
       <p class="empty" id="farmEmpty">조건에 맞는 농장이 없습니다. 날짜나 검색어를 바꿔보세요.</p>
@@ -123,7 +136,7 @@
 
     <section class="section" id="popup">
       <div class="section-head">
-        <h2>4번 섹터 · 진행 중인 팝업스토어</h2>
+        <h2>진행 중인 팝업스토어</h2>
         <p>아이 동반 가능 팝업스토어를 모아봅니다.</p>
       </div>
       <div class="list" id="popupList"></div>
@@ -138,7 +151,7 @@
     </div>
     <div class="footer-meta">
       <span>문의: hello@reservation.kr</span>
-      <span>데모 버전 v0.2</span>
+      <span>데모 버전 v0.3</span>
     </div>
   </footer>
 
