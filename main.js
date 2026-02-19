@@ -7,7 +7,7 @@ const facilities = [
     openDate: "2026-02-25",
     availableStart: "2026-03-01",
     availableEnd: "2026-03-31",
-    reservationUrl: "#",
+    reservationUrl: "https://www.museum.go.kr/MUSEUM/contents/M0104090000.do",
   },
   {
     sector: "public",
@@ -17,7 +17,7 @@ const facilities = [
     openDate: "2026-02-20",
     availableStart: "2026-02-22",
     availableEnd: "2026-03-20",
-    reservationUrl: "#",
+    reservationUrl: "https://www.sciencecenter.go.kr/scipia/schedules?ACADEMY_CD=ACD012",
   },
   {
     sector: "public",
@@ -27,7 +27,7 @@ const facilities = [
     openDate: "2026-02-28",
     availableStart: "2026-03-05",
     availableEnd: "2026-04-05",
-    reservationUrl: "#",
+    reservationUrl: "https://m.mmca.go.kr/visitingInfo/exhReserve.do",
   },
   {
     sector: "public",
@@ -37,7 +37,7 @@ const facilities = [
     openDate: "2026-02-22",
     availableStart: "2026-02-24",
     availableEnd: "2026-03-30",
-    reservationUrl: "#",
+    reservationUrl: "https://www.sciencecenter.or.kr/",
   },
   {
     sector: "public",
@@ -47,7 +47,7 @@ const facilities = [
     openDate: "2026-02-24",
     availableStart: "2026-03-02",
     availableEnd: "2026-03-28",
-    reservationUrl: "#",
+    reservationUrl: "https://www.mmk.or.kr/",
   },
   {
     sector: "public",
@@ -57,7 +57,7 @@ const facilities = [
     openDate: "2026-02-21",
     availableStart: "2026-02-26",
     availableEnd: "2026-04-10",
-    reservationUrl: "#",
+    reservationUrl: "https://www.accf.or.kr/main/",
   },
   {
     sector: "public",
@@ -67,7 +67,7 @@ const facilities = [
     openDate: "2026-02-23",
     availableStart: "2026-02-27",
     availableEnd: "2026-03-27",
-    reservationUrl: "#",
+    reservationUrl: "https://rsvn.science.go.kr/nsm/exbtrsvn/dspy/000",
   },
   {
     sector: "public",
@@ -77,7 +77,7 @@ const facilities = [
     openDate: "2026-02-26",
     availableStart: "2026-03-03",
     availableEnd: "2026-04-01",
-    reservationUrl: "#",
+    reservationUrl: "https://m.mmca.go.kr/visitingInfo/exhReserve.do",
   },
   {
     sector: "public",
@@ -87,7 +87,7 @@ const facilities = [
     openDate: "2026-02-27",
     availableStart: "2026-03-04",
     availableEnd: "2026-03-25",
-    reservationUrl: "#",
+    reservationUrl: "https://www.aviation.or.kr/reservation.do?gcode=gcode1&menuno=191",
   },
   {
     sector: "public",
@@ -97,7 +97,7 @@ const facilities = [
     openDate: "시립 공지",
     availableStart: "상시",
     availableEnd: "상시",
-    reservationUrl: "#",
+    reservationUrl: "https://sema.seoul.go.kr/",
   },
   {
     sector: "public",
@@ -107,7 +107,7 @@ const facilities = [
     openDate: "시립 공지",
     availableStart: "상시",
     availableEnd: "상시",
-    reservationUrl: "#",
+    reservationUrl: "https://www.museum.seoul.kr/www/NR_index.do",
   },
   {
     sector: "public",
@@ -117,7 +117,7 @@ const facilities = [
     openDate: "구립 공지",
     availableStart: "상시",
     availableEnd: "상시",
-    reservationUrl: "#",
+    reservationUrl: "https://namursv.sdm.go.kr/modules/reservation/rsv_list.html",
   },
   {
     sector: "public",
@@ -137,7 +137,7 @@ const facilities = [
     openDate: "시립 공지",
     availableStart: "상시",
     availableEnd: "상시",
-    reservationUrl: "#",
+    reservationUrl: "https://art.busan.go.kr/",
   },
   {
     sector: "public",
@@ -147,7 +147,7 @@ const facilities = [
     openDate: "시립 공지",
     availableStart: "상시",
     availableEnd: "상시",
-    reservationUrl: "#",
+    reservationUrl: "https://daeguartmuseum.or.kr/",
   },
   {
     sector: "public",
@@ -157,7 +157,7 @@ const facilities = [
     openDate: "시립 공지",
     availableStart: "상시",
     availableEnd: "상시",
-    reservationUrl: "#",
+    reservationUrl: "https://www.incheon.go.kr/museum",
   },
   {
     sector: "farm",
