@@ -97,7 +97,17 @@ const facilities = [
     openDate: "네이버 예약",
     availableStart: "상시(현장 안내)",
     availableEnd: "상시(현장 안내)",
-    reservationUrl: "https://booking.naver.com/booking/5/bizes/112004?area=ple",
+    reservationUrl: "#",
+  },
+  {
+    sector: "farm",
+    name: "양평 빌라자넬라 블루베리 수확체험",
+    type: "블루베리 체험",
+    region: "경기 양평",
+    openDate: "네이버 예약",
+    availableStart: "2024-06-15",
+    availableEnd: "여름",
+    reservationUrl: "https://booking.naver.com/booking/6/bizes/368951",
   },
   {
     sector: "popup",
