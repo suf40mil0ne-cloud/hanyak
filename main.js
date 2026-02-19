@@ -91,44 +91,33 @@ const facilities = [
   },
   {
     sector: "farm",
-    name: "율봄농촌체험농장",
-    type: "딸기 체험",
-    region: "경기 광주",
-    openDate: "매주 월 12시",
-    availableStart: "12월",
-    availableEnd: "4월",
-    reservationUrl: "https://booking.naver.com/booking/5/bizes/639050?area=pll",
-  },
-  {
-    sector: "farm",
-    name: "행복텃밭",
-    type: "사과 체험",
-    region: "경기 화성",
-    openDate: "네이버 사전예약",
-    availableStart: "8월 말",
-    availableEnd: "10월",
-    reservationUrl:
-      "https://map.naver.com/p/search/%ED%96%89%EB%B3%B5%ED%85%83%EB%B0%AD/place/19512432?additionalHeight=76&additionalHeight=76&c=15.00%2C0%2C0%2C0%2Cdh&fromPanelNum=1&fromPanelNum=1&isCorrectAnswer=true&locale=ko&locale=ko&placePath=%2Fticket%3Ffrom%3Dmap&searchText=%ED%96%89%EB%B3%B5%ED%85%83%EB%B0%AD&searchText=%ED%96%89%EB%B3%B5%ED%85%83%EB%B0%AD&svcName=map_pcv5&svcName=map_pcv5&timestamp=202601260949&timestamp=202601260949",
-  },
-  {
-    sector: "farm",
-    name: "양평 빌라자넬라 블루베리 체험",
-    type: "블루베리 체험",
-    region: "경기 양평",
+    name: "대관령 양떼목장",
+    type: "목장 체험",
+    region: "강원 평창",
     openDate: "네이버 예약",
-    availableStart: "6월 중순",
-    availableEnd: "여름",
-    reservationUrl: "https://booking.naver.com/booking/6/bizes/368951",
+    availableStart: "상시(현장 안내)",
+    availableEnd: "상시(현장 안내)",
+    reservationUrl: "https://booking.naver.com/booking/5/bizes/112004?area=ple",
   },
   {
     sector: "popup",
-    name: "어린이 과학 체험 팝업",
-    type: "팝업스토어",
+    name: "미피와 마법의 우체통",
+    type: "전시/팝업",
+    region: "서울 종로",
+    openDate: "2024-11-21",
+    availableStart: "2024-11-21",
+    availableEnd: "2025-08-17",
+    reservationUrl: "https://booking.naver.com/booking/5/bizes/1250913",
+  },
+  {
+    sector: "popup",
+    name: "쿠푸왕의 피라미드 VR 전시",
+    type: "전시/체험",
     region: "서울",
-    openDate: "2026-02-18",
-    availableStart: "2026-02-19",
-    availableEnd: "2026-03-05",
-    reservationUrl: "#",
+    openDate: "네이버 예매",
+    availableStart: "2025-03-27",
+    availableEnd: "2026-03-02",
+    reservationUrl: "https://booking.naver.com/booking/12/bizes/1347394",
   },
 ];
 
@@ -179,6 +168,13 @@ const withinRange = (date, start, end) => {
 
 const getStatus = (item, selectedDate) => {
   if (!selectedDate) {
+    if (isDateString(item.availableEnd)) {
+      const today = new Date();
+      const endDate = new Date(item.availableEnd + "T00:00:00");
+      if (today > endDate) {
+        return { label: "기간 종료", tone: "closed" };
+      }
+    }
     if (!isDateString(item.openDate)) {
       return { label: "정보 확인", tone: "soon" };
     }
