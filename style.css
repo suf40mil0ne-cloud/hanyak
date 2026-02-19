@@ -301,6 +301,58 @@ main {
   border-radius: 12px;
 }
 
+.guide {
+  background: #fff7ef;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.guide-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.guide-card ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+
+.guide-card li {
+  margin-bottom: 8px;
+}
+
+.about {
+  background: #f5f2ec;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.about-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.about-card ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+
+.about-card li {
+  margin-bottom: 8px;
+}
+
 .section {
   padding: 40px 8vw 64px;
 }
