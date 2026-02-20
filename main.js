@@ -201,6 +201,11 @@ const facilities = [
   },
 ];
 
+const getLocalISODate = (date = new Date()) => {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+};
+
 const state = {
   search: "",
   date: "",
@@ -223,6 +228,12 @@ const emptyMap = {
 const totalCountEl = document.getElementById("totalCount");
 const todayLabelEl = document.getElementById("todayLabel");
 const typeChipsEl = document.getElementById("typeChips");
+const selectedDateLabelEl = document.getElementById("selectedDateLabel");
+const availableCountEl = document.getElementById("availableCount");
+const soonCountEl = document.getElementById("soonCount");
+const spotlightListEl = document.getElementById("spotlightList");
+const spotlightEmptyEl = document.getElementById("spotlightEmpty");
+const spotlightHintEl = document.getElementById("spotlightHint");
 
 const isDateString = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value || "");
 
@@ -234,6 +245,18 @@ const formatDate = (value) => {
     year: "numeric",
     month: "short",
     day: "numeric",
+  });
+};
+
+const formatDateLong = (value) => {
+  if (!value) return "-";
+  if (!isDateString(value)) return value;
+  const date = new Date(value + "T00:00:00");
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
   });
 };
 
@@ -341,6 +364,75 @@ const buildCard = (item) => {
   return card;
 };
 
+const buildSpotlightCard = (item, focusDate) => {
+  const status = getStatus(item, focusDate);
+  const card = document.createElement("div");
+  card.className = "spotlight-card";
+  const disabled = item.reservationUrl === "#" || !item.reservationUrl;
+  const linkClass = `link-btn primary${disabled ? " disabled" : ""}`;
+  const linkAttrs = disabled
+    ? `href="#" aria-disabled="true"`
+    : `href="${item.reservationUrl}" target="_blank" rel="noopener"`;
+
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="card-title">${item.name}</div>
+      <span class="status ${status.tone}">${status.label}</span>
+    </div>
+    <div class="spotlight-meta">
+      <span>${item.region}</span>
+      <span>${formatDate(item.availableStart)} ~ ${formatDate(item.availableEnd)}</span>
+    </div>
+    <div class="spotlight-tags">
+      <span class="tag">${item.type}</span>
+      <span class="tag">날짜 기준 추천</span>
+    </div>
+    <div class="card-actions">
+      <a class="${linkClass}" ${linkAttrs}>
+        예약 페이지
+      </a>
+    </div>
+  `;
+
+  if (disabled) {
+    card.querySelector(".link-btn").addEventListener("click", (event) => {
+      event.preventDefault();
+    });
+  }
+  return card;
+};
+
+const updateSpotlight = () => {
+  const focusDate = state.date || getLocalISODate();
+  selectedDateLabelEl.textContent = formatDateLong(focusDate);
+
+  const available = facilities.filter((item) =>
+    withinRange(focusDate, item.availableStart, item.availableEnd)
+  );
+
+  const soon = facilities.filter((item) => {
+    if (!isDateString(item.openDate)) return false;
+    return item.openDate > focusDate;
+  });
+
+  availableCountEl.textContent = available.length;
+  soonCountEl.textContent = soon.length;
+
+  const sorted = [...available].sort((a, b) => {
+    const aKey = isDateString(a.availableStart) ? a.availableStart : "9999-12-31";
+    const bKey = isDateString(b.availableStart) ? b.availableStart : "9999-12-31";
+    if (aKey !== bKey) return aKey.localeCompare(bKey, "ko");
+    return a.name.localeCompare(b.name, "ko");
+  });
+
+  spotlightListEl.innerHTML = "";
+  sorted.slice(0, 6).forEach((item) => {
+    spotlightListEl.appendChild(buildSpotlightCard(item, focusDate));
+  });
+  spotlightEmptyEl.style.display = sorted.length ? "none" : "block";
+  spotlightHintEl.textContent = `${formatDateLong(focusDate)} 기준입니다.`;
+};
+
 const render = () => {
   const filtered = facilities
     .filter((item) => item.name.includes(state.search))
@@ -372,6 +464,7 @@ const render = () => {
   });
 
   totalCountEl.textContent = facilities.length;
+  updateSpotlight();
 };
 
 const init = () => {
@@ -381,6 +474,8 @@ const init = () => {
     month: "long",
     day: "numeric",
   });
+  state.date = getLocalISODate(today);
+  document.getElementById("dateInput").value = state.date;
 
   document.getElementById("searchInput").addEventListener("input", (event) => {
     state.search = event.target.value.trim();
@@ -399,11 +494,11 @@ const init = () => {
 
   document.getElementById("resetBtn").addEventListener("click", () => {
     state.search = "";
-    state.date = "";
+    state.date = getLocalISODate();
     state.sort = "open";
     state.type = "전체";
     document.getElementById("searchInput").value = "";
-    document.getElementById("dateInput").value = "";
+    document.getElementById("dateInput").value = state.date;
     document.getElementById("sortSelect").value = "open";
     renderChips();
     render();
@@ -411,6 +506,24 @@ const init = () => {
 
   document.getElementById("scrollToList").addEventListener("click", () => {
     document.querySelector("#public").scrollIntoView({ behavior: "smooth" });
+  });
+
+  document.querySelectorAll(".chip-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.quick;
+      const base = new Date();
+      if (action === "weekend") {
+        const day = base.getDay();
+        const diff = day === 6 ? 0 : (6 - day + 7) % 7;
+        base.setDate(base.getDate() + diff);
+      }
+      if (action === "next7") {
+        base.setDate(base.getDate() + 7);
+      }
+      state.date = getLocalISODate(base);
+      document.getElementById("dateInput").value = state.date;
+      render();
+    });
   });
 
   renderChips();

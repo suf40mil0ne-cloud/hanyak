@@ -42,6 +42,27 @@
           자녀와 갈 곳을 찾는 부모를 위해 시설명과 예약 날짜를 정리합니다.
           공공기관부터 체험 농장까지, 중요한 정보를 빠르게 비교해 보세요.
         </p>
+        <div class="date-focus">
+          <div class="date-card">
+            <span class="date-label">선택한 날짜</span>
+            <strong class="date-value" id="selectedDateLabel">-</strong>
+            <div class="date-actions">
+              <button class="chip-btn" data-quick="today">오늘</button>
+              <button class="chip-btn" data-quick="weekend">이번 주말</button>
+              <button class="chip-btn" data-quick="next7">7일 후</button>
+            </div>
+          </div>
+          <div class="date-stats">
+            <div class="stat">
+              <span>가능한 곳</span>
+              <strong id="availableCount">0</strong>
+            </div>
+            <div class="stat">
+              <span>곧 오픈</span>
+              <strong id="soonCount">0</strong>
+            </div>
+          </div>
+        </div>
         <div class="hero-cta">
           <button class="primary" id="scrollToList">섹터 보기</button>
           <button class="ghost">알림 신청</button>
@@ -93,6 +114,15 @@
           </ul>
         </div>
       </div>
+    </section>
+
+    <section class="section spotlight" id="spotlight">
+      <div class="section-head">
+        <h2>선택한 날짜에 예약 가능한 곳</h2>
+        <p id="spotlightHint">날짜를 바꾸면 즉시 업데이트됩니다.</p>
+      </div>
+      <div class="spotlight-list" id="spotlightList"></div>
+      <p class="empty" id="spotlightEmpty">해당 날짜에 예약 가능한 곳이 없습니다.</p>
     </section>
 
     <section class="ad-strip" aria-label="광고 영역">
