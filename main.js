@@ -334,6 +334,36 @@ const facilities = [
     availableEnd: "2026-05-31",
     reservationUrl: "tel:010-4141-8049",
   },
+  {
+    sector: "public",
+    name: "검단소방서 소방안전체험",
+    type: "체험관",
+    region: "인천 서구",
+    openDate: "2026-02-02",
+    availableStart: "2026-02-02",
+    availableEnd: "2026-02-26",
+    reservationUrl: "https://www.incheon.go.kr/res/RE030101/view?res_no=41",
+  },
+  {
+    sector: "public",
+    name: "인천대공원 목재문화체험장",
+    type: "체험관",
+    region: "인천 남동",
+    openDate: "2026-01-21",
+    availableStart: "2026-02-01",
+    availableEnd: "2026-02-28",
+    reservationUrl: "https://www.incheon.go.kr/res/RE030101/view?res_no=18",
+  },
+  {
+    sector: "public",
+    name: "인천대공원 환경미래관",
+    type: "체험관",
+    region: "인천 남동",
+    openDate: "2026-01-28",
+    availableStart: "2026-02-01",
+    availableEnd: "2026-12-31",
+    reservationUrl: "https://www.incheon.go.kr/res/RE030101/view?res_no=21",
+  },
 ];
 
 const getLocalISODate = (date = new Date()) => {
@@ -345,6 +375,7 @@ const state = {
   search: "",
   date: "",
   sort: "open",
+  expandedSectors: [],
 };
 
 const listMap = {
@@ -600,6 +631,26 @@ const buildSpotlightCard = (item, focusDate) => {
   return card;
 };
 
+const renderShowMoreBtn = (sector, count, isExpanded) => {
+  const container = document.createElement("div");
+  container.className = "show-more-container";
+  if (count <= 5) return container;
+
+  const btn = document.createElement("button");
+  btn.className = "ghost full show-more-btn";
+  btn.textContent = isExpanded ? "접기" : `${count - 5}개 더보기`;
+  btn.onclick = () => {
+    if (isExpanded) {
+      state.expandedSectors = state.expandedSectors.filter(s => s !== sector);
+    } else {
+      state.expandedSectors.push(sector);
+    }
+    render();
+  };
+  container.appendChild(btn);
+  return container;
+};
+
 const updateSpotlight = () => {
   const focusDate = state.date || getLocalISODate();
 
@@ -667,10 +718,19 @@ const render = () => {
       if (bIdx === -1) return -1;
       return aIdx - bIdx;
     });
-    sortedTypes.forEach((type) => {
+    const isExpanded = state.expandedSectors.includes("public");
+    const visibleTypes = isExpanded ? sortedTypes : sortedTypes.slice(0, 3); // Limit types initially
+
+    sortedTypes.forEach((type, idx) => {
       const items = typeGroups[type];
       const group = document.createElement("div");
       group.className = "type-group";
+      
+      // If not expanded, hide groups beyond the 3rd type
+      if (!isExpanded && idx >= 3) {
+        group.style.display = "none";
+      }
+
       group.innerHTML = `
         <div class="type-title">
           <h3>${type}</h3>
@@ -683,6 +743,8 @@ const render = () => {
       group.appendChild(list);
       publicList.appendChild(group);
     });
+
+    publicList.appendChild(renderShowMoreBtn("public", sortedTypes.length > 3 ? 6 : 0, isExpanded)); // Fake count to trigger btn
     emptyMap.public.style.display = "none";
   } else {
     emptyMap.public.style.display = "block";
@@ -692,9 +754,15 @@ const render = () => {
     const list = listMap[sector];
     const items = grouped[sector] || [];
     list.innerHTML = "";
-    items.forEach((item) => {
+    
+    const isExpanded = state.expandedSectors.includes(sector);
+    const visibleItems = isExpanded ? items : items.slice(0, 5);
+
+    visibleItems.forEach((item) => {
       list.appendChild(buildCard(item));
     });
+    
+    list.appendChild(renderShowMoreBtn(sector, items.length, isExpanded));
     emptyMap[sector].style.display = items.length ? "none" : "block";
   });
 

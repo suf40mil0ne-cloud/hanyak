@@ -322,6 +322,25 @@ main {
   cursor: pointer;
 }
 
+.ghost.full {
+  width: 100%;
+}
+
+.show-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.show-more-btn {
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.show-more-btn:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
 .hero-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
