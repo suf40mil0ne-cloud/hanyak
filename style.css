@@ -140,6 +140,43 @@ button, input, select {
   color: var(--ink);
 }
 
+.tabs {
+  padding-top: 16px;
+  padding-bottom: 24px;
+}
+
+.tab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.tab-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(15, 20, 18, 0.1);
+  box-shadow: 0 14px 30px rgba(15, 20, 18, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tab-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(15, 20, 18, 0.12);
+}
+
+.tab-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.tab-card p {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 main {
   position: relative;
   z-index: 1;
