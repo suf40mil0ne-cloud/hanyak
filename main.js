@@ -287,6 +287,46 @@ const facilities = [
     availableEnd: "2026-03-02",
     reservationUrl: "https://booking.naver.com/booking/12/bizes/1347394",
   },
+  {
+    sector: "farm",
+    name: "딸기의하루",
+    type: "딸기 체험",
+    region: "인천 남동",
+    openDate: "네이버 예약",
+    availableStart: "2025-12-01",
+    availableEnd: "2026-05-31",
+    reservationUrl: "https://m.booking.naver.com/booking/6/bizes/590379",
+  },
+  {
+    sector: "farm",
+    name: "부천 수퍼팜",
+    type: "딸기 체험",
+    region: "경기 부천",
+    openDate: "네이버 예약",
+    availableStart: "2025-12-01",
+    availableEnd: "2026-05-31",
+    reservationUrl: "https://booking.naver.com/booking/6/bizes/192290",
+  },
+  {
+    sector: "farm",
+    name: "두루팜",
+    type: "농촌 체험",
+    region: "인천 계양",
+    openDate: "상시 예약",
+    availableStart: "2025-12-14",
+    availableEnd: "2026-05-05",
+    reservationUrl: "https://durufarm.kr/",
+  },
+  {
+    sector: "farm",
+    name: "강화 이상준 부자농부",
+    type: "딸기 체험",
+    region: "인천 강화",
+    openDate: "전화 예약",
+    availableStart: "2025-12-01",
+    availableEnd: "2026-05-31",
+    reservationUrl: "tel:010-4141-8049",
+  },
 ];
 
 const getLocalISODate = (date = new Date()) => {
@@ -316,12 +356,48 @@ const emptyMap = {
 
 const totalCountEl = document.getElementById("totalCount");
 const todayLabelEl = document.getElementById("todayLabel");
-const selectedDateLabelEl = document.getElementById("selectedDateLabel");
-const availableCountEl = document.getElementById("availableCount");
-const soonCountEl = document.getElementById("soonCount");
 const spotlightListEl = document.getElementById("spotlightList");
 const spotlightEmptyEl = document.getElementById("spotlightEmpty");
 const spotlightHintEl = document.getElementById("spotlightHint");
+
+const updateThreeDayForecast = () => {
+  const base = new Date();
+  for (let i = 0; i <= 2; i++) {
+    const focus = new Date(base);
+    focus.setDate(base.getDate() + i);
+    const focusDate = getLocalISODate(focus);
+    const dayEl = document.getElementById(`day-${i}`);
+    if (!dayEl) continue;
+
+    dayEl.querySelector(".day-date").textContent = focus.toLocaleDateString("ko-KR", {
+      month: "short",
+      day: "numeric",
+      weekday: "short",
+    });
+
+    const available = facilities.filter((item) =>
+      withinRange(focusDate, item.availableStart, item.availableEnd)
+    );
+
+    const listEl = dayEl.querySelector(".forecast-list");
+    const emptyEl = dayEl.querySelector(".empty");
+    listEl.innerHTML = "";
+
+    const sorted = [...available].sort((a, b) => {
+      const aKey = isDateString(a.availableStart) ? a.availableStart : "9999-12-31";
+      const bKey = isDateString(b.availableStart) ? b.availableStart : "9999-12-31";
+      if (aKey !== bKey) return aKey.localeCompare(bKey, "ko");
+      return a.name.localeCompare(b.name, "ko");
+    });
+
+    sorted.slice(0, 4).forEach((item) => {
+      const card = buildSpotlightCard(item, focusDate);
+      listEl.appendChild(card);
+    });
+
+    emptyEl.style.display = sorted.length ? "none" : "block";
+  }
+};
 
 const isDateString = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value || "");
 
@@ -488,7 +564,6 @@ const buildSpotlightCard = (item, focusDate) => {
 
 const updateSpotlight = () => {
   const focusDate = state.date || getLocalISODate();
-  selectedDateLabelEl.textContent = formatDateLong(focusDate);
 
   const available = facilities.filter((item) =>
     withinRange(focusDate, item.availableStart, item.availableEnd)
@@ -498,9 +573,6 @@ const updateSpotlight = () => {
     if (!isDateString(item.openDate)) return false;
     return item.openDate > focusDate;
   });
-
-  availableCountEl.textContent = available.length;
-  soonCountEl.textContent = soon.length;
 
   const sorted = [...available].sort((a, b) => {
     const aKey = isDateString(a.availableStart) ? a.availableStart : "9999-12-31";
@@ -590,6 +662,7 @@ const render = () => {
 
   totalCountEl.textContent = facilities.length;
   updateSpotlight();
+  updateThreeDayForecast();
 };
 
 const init = () => {
@@ -650,6 +723,7 @@ const init = () => {
   });
 
   render();
+  updateThreeDayForecast();
 };
 
 init();

@@ -40,27 +40,6 @@
           자녀와 갈 곳을 찾는 부모를 위해 시설명과 예약 날짜를 정리합니다.
           공공기관부터 체험 농장까지, 중요한 정보를 빠르게 비교해 보세요.
         </p>
-        <div class="date-focus">
-          <div class="date-card">
-            <span class="date-label">선택한 날짜</span>
-            <strong class="date-value" id="selectedDateLabel">-</strong>
-            <div class="date-actions">
-              <button class="chip-btn" data-quick="today">오늘</button>
-              <button class="chip-btn" data-quick="weekend">이번 주말</button>
-              <button class="chip-btn" data-quick="next7">7일 후</button>
-            </div>
-          </div>
-          <div class="date-stats">
-            <div class="stat">
-              <span>가능한 곳</span>
-              <strong id="availableCount">0</strong>
-            </div>
-            <div class="stat">
-              <span>곧 오픈</span>
-              <strong id="soonCount">0</strong>
-            </div>
-          </div>
-        </div>
         <div class="hero-cta">
           <button class="primary" id="scrollToList">섹터 보기</button>
           <button class="ghost">알림 신청</button>
@@ -110,6 +89,39 @@
             <li>아이와 함께 가능한 시설 우선 정리</li>
             <li>예약 페이지까지 바로 이동</li>
           </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section three-day" id="threeDayForecast">
+      <div class="section-head">
+        <h2>실시간 예약 가능 현황</h2>
+        <p>오늘부터 3일간 예약할 수 있는 곳들을 모아봤습니다.</p>
+      </div>
+      <div class="forecast-grid">
+        <div class="forecast-day" id="day-0">
+          <div class="day-head">
+            <span class="day-label">오늘</span>
+            <strong class="day-date">-</strong>
+          </div>
+          <div class="forecast-list"></div>
+          <p class="empty">예약 가능한 곳이 없습니다.</p>
+        </div>
+        <div class="forecast-day" id="day-1">
+          <div class="day-head">
+            <span class="day-label">내일</span>
+            <strong class="day-date">-</strong>
+          </div>
+          <div class="forecast-list"></div>
+          <p class="empty">예약 가능한 곳이 없습니다.</p>
+        </div>
+        <div class="forecast-day" id="day-2">
+          <div class="day-head">
+            <span class="day-label">모레</span>
+            <strong class="day-date">-</strong>
+          </div>
+          <div class="forecast-list"></div>
+          <p class="empty">예약 가능한 곳이 없습니다.</p>
         </div>
       </div>
     </section>
