@@ -1,3 +1,9 @@
+// Scroll to top on refresh
+if (history.scrollRestoration) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 const facilities = [
   {
     sector: "public",
@@ -377,7 +383,7 @@ const updateThreeDayForecast = () => {
     });
 
     const available = facilities.filter((item) =>
-      withinRange(focusDate, item.availableStart, item.availableEnd)
+      withinRange(focusDate, item.availableStart, item.availableEnd, item.openDate)
     );
 
     const listEl = dayEl.querySelector(".forecast-list");
@@ -432,8 +438,17 @@ const formatOpenInfo = (item) => {
   return info;
 };
 
-const withinRange = (date, start, end) => {
+const withinRange = (date, start, end, openDate) => {
   if (!date) return true;
+  
+  // If openDate is set and in the future, it's not available for booking yet
+  if (openDate && isDateString(openDate)) {
+    const todayStr = getLocalISODate();
+    if (openDate > todayStr) {
+      return false;
+    }
+  }
+
   if (!isDateString(start) || !isDateString(end)) {
     const startText = String(start || "");
     const endText = String(end || "");
@@ -448,6 +463,14 @@ const withinRange = (date, start, end) => {
 };
 
 const getStatus = (item, selectedDate) => {
+  const todayStr = getLocalISODate();
+  const openStr = item.openDate || "";
+  
+  // If openDate is in the future, always show "Soon" or "Before Open"
+  if (isDateString(openStr) && openStr > todayStr) {
+    return { label: "오픈 예정", tone: "soon" };
+  }
+
   if (!selectedDate) {
     if (isDateString(item.availableEnd)) {
       const today = new Date();
@@ -459,20 +482,17 @@ const getStatus = (item, selectedDate) => {
     if (!isDateString(item.openDate)) {
       return { label: "정보 확인", tone: "soon" };
     }
-    const today = new Date();
-    const open = new Date(item.openDate + "T00:00:00");
-    if (open > today) return { label: "오픈 예정", tone: "soon" };
     return { label: "예약 진행", tone: "open" };
   }
-  if (withinRange(selectedDate, item.availableStart, item.availableEnd)) {
+
+  if (withinRange(selectedDate, item.availableStart, item.availableEnd, item.openDate)) {
     return { label: "해당 날짜 가능", tone: "open" };
   }
+  
   if (!isDateString(item.openDate)) {
     return { label: "시즌 확인", tone: "soon" };
   }
-  const open = new Date(item.openDate + "T00:00:00");
-  const selected = new Date(selectedDate + "T00:00:00");
-  if (selected < open) return { label: "오픈 전", tone: "soon" };
+
   return { label: "예약 불가", tone: "closed" };
 };
 
@@ -584,7 +604,7 @@ const updateSpotlight = () => {
   const focusDate = state.date || getLocalISODate();
 
   const available = facilities.filter((item) =>
-    withinRange(focusDate, item.availableStart, item.availableEnd)
+    withinRange(focusDate, item.availableStart, item.availableEnd, item.openDate)
   );
 
   const soon = facilities.filter((item) => {
@@ -610,7 +630,7 @@ const updateSpotlight = () => {
 const render = () => {
   const filtered = facilities
     .filter((item) => item.name.includes(state.search))
-    .filter((item) => withinRange(state.date, item.availableStart, item.availableEnd))
+    .filter((item) => withinRange(state.date, item.availableStart, item.availableEnd, item.openDate))
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
       if (state.sort === "start") return a.availableStart.localeCompare(b.availableStart, "ko");
