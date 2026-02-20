@@ -91,6 +91,61 @@ const facilities = [
   },
   {
     sector: "public",
+    name: "해양생태과학관",
+    type: "과학관",
+    region: "경기 시흥",
+    openRule: "공식 공지 확인 필요",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "#",
+  },
+  {
+    sector: "public",
+    name: "한국잡월드",
+    type: "체험관",
+    region: "경기 성남",
+    openRule: "홈페이지 체험 예약",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.koreajobworld.or.kr",
+  },
+  {
+    sector: "public",
+    name: "경기도교육청미래과학교육원",
+    type: "과학관",
+    region: "경기 수원",
+    openRule: "전시관 예약 캘린더 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.gise.kr/",
+  },
+  {
+    sector: "public",
+    name: "해우재",
+    type: "박물관",
+    region: "경기 수원",
+    openRule: "공식 공지 확인 필요",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "#",
+  },
+  {
+    sector: "public",
+    name: "경찰박물관",
+    type: "박물관",
+    region: "서울 종로",
+    openRule: "공식 공지 확인 필요",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.policemuseum.go.kr/",
+  },
+  {
+    sector: "public",
     name: "서울시립미술관",
     type: "미술관",
     region: "서울 중구",
@@ -171,6 +226,39 @@ const facilities = [
   },
   {
     sector: "farm",
+    name: "521농업생태체험장",
+    type: "농업 체험",
+    region: "경기 구리",
+    openRule: "공식 공지 확인 필요",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "#",
+  },
+  {
+    sector: "private",
+    name: "스위트파크 롯데 어린이 식품체험관",
+    type: "체험관",
+    region: "서울 강서",
+    openRule: "매월 첫째 수요일 11시 익월 예약 오픈(휴관/공휴일 시 둘째 수요일)",
+    openDate: "",
+    availableStart: "상시",
+    availableEnd: "상시",
+    reservationUrl: "https://sweetpark.lotternd.com/kor/schedule/sweet__schedule.html",
+  },
+  {
+    sector: "private",
+    name: "Workshop by 배스킨라빈스",
+    type: "체험/클래스",
+    region: "서울 강남",
+    openRule: "공식 공지 확인 필요",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "#",
+  },
+  {
+    sector: "farm",
     name: "양평 빌라자넬라 블루베리 수확체험",
     type: "블루베리 체험",
     region: "경기 양평",
@@ -214,12 +302,14 @@ const state = {
 
 const listMap = {
   public: document.getElementById("publicList"),
+  private: document.getElementById("privateList"),
   farm: document.getElementById("farmList"),
   popup: document.getElementById("popupList"),
 };
 
 const emptyMap = {
   public: document.getElementById("publicEmpty"),
+  private: document.getElementById("privateEmpty"),
   farm: document.getElementById("farmEmpty"),
   popup: document.getElementById("popupEmpty"),
 };
@@ -258,9 +348,20 @@ const formatDateLong = (value) => {
   });
 };
 
+const formatOpenInfo = (item) => {
+  if (item.openRule) return item.openRule;
+  return formatDate(item.openDate);
+};
+
 const withinRange = (date, start, end) => {
   if (!date) return true;
-  if (!isDateString(start) || !isDateString(end)) return true;
+  if (!isDateString(start) || !isDateString(end)) {
+    const startText = String(start || "");
+    const endText = String(end || "");
+    const isAlways =
+      startText.includes("상시") && endText.includes("상시");
+    return isAlways;
+  }
   const d = new Date(date + "T00:00:00");
   const s = new Date(start + "T00:00:00");
   const e = new Date(end + "T00:00:00");
@@ -320,7 +421,7 @@ const buildCard = (item) => {
     <div class="card-grid">
       <div>
         <strong>예약 오픈</strong>
-        <span>${formatDate(item.openDate)}</span>
+        <span>${formatOpenInfo(item)}</span>
       </div>
       <div>
         <strong>체험 시작</strong>
@@ -423,7 +524,9 @@ const render = () => {
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
       if (state.sort === "start") return a.availableStart.localeCompare(b.availableStart, "ko");
-      return a.openDate.localeCompare(b.openDate, "ko");
+      const aKey = isDateString(a.openDate) ? a.openDate : "9999-12-31";
+      const bKey = isDateString(b.openDate) ? b.openDate : "9999-12-31";
+      return aKey.localeCompare(bKey, "ko");
     });
 
   Object.values(listMap).forEach((list) => {
@@ -475,7 +578,7 @@ const render = () => {
     emptyMap.public.style.display = "block";
   }
 
-  ["farm", "popup"].forEach((sector) => {
+  ["private", "farm", "popup"].forEach((sector) => {
     const list = listMap[sector];
     const items = grouped[sector] || [];
     list.innerHTML = "";
