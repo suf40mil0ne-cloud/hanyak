@@ -210,7 +210,6 @@ const state = {
   search: "",
   date: "",
   sort: "open",
-  type: "전체",
 };
 
 const listMap = {
@@ -227,7 +226,6 @@ const emptyMap = {
 
 const totalCountEl = document.getElementById("totalCount");
 const todayLabelEl = document.getElementById("todayLabel");
-const typeChipsEl = document.getElementById("typeChips");
 const selectedDateLabelEl = document.getElementById("selectedDateLabel");
 const availableCountEl = document.getElementById("availableCount");
 const soonCountEl = document.getElementById("soonCount");
@@ -296,21 +294,6 @@ const getStatus = (item, selectedDate) => {
   const selected = new Date(selectedDate + "T00:00:00");
   if (selected < open) return { label: "오픈 전", tone: "soon" };
   return { label: "예약 불가", tone: "closed" };
-};
-
-const renderChips = () => {
-  const types = ["전체", ...new Set(facilities.map((item) => item.type))];
-  typeChipsEl.innerHTML = "";
-  types.forEach((type) => {
-    const chip = document.createElement("button");
-    chip.className = `chip ${state.type === type ? "active" : ""}`;
-    chip.textContent = type;
-    chip.addEventListener("click", () => {
-      state.type = type;
-      render();
-    });
-    typeChipsEl.appendChild(chip);
-  });
 };
 
 const buildCard = (item) => {
@@ -436,7 +419,6 @@ const updateSpotlight = () => {
 const render = () => {
   const filtered = facilities
     .filter((item) => item.name.includes(state.search))
-    .filter((item) => (state.type === "전체" ? true : item.type === state.type))
     .filter((item) => withinRange(state.date, item.availableStart, item.availableEnd))
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
@@ -454,9 +436,49 @@ const render = () => {
     return acc;
   }, {});
 
-  ["public", "farm", "popup"].forEach((sector) => {
+  const publicList = listMap.public;
+  const publicItems = grouped.public || [];
+  publicList.innerHTML = "";
+  if (publicItems.length) {
+    const typeGroups = publicItems.reduce((acc, item) => {
+      if (!acc[item.type]) acc[item.type] = [];
+      acc[item.type].push(item);
+      return acc;
+    }, {});
+    const typeOrder = ["박물관", "미술관", "과학관", "체험관", "도서관"];
+    const sortedTypes = Object.keys(typeGroups).sort((a, b) => {
+      const aIdx = typeOrder.indexOf(a);
+      const bIdx = typeOrder.indexOf(b);
+      if (aIdx === -1 && bIdx === -1) return a.localeCompare(b, "ko");
+      if (aIdx === -1) return 1;
+      if (bIdx === -1) return -1;
+      return aIdx - bIdx;
+    });
+    sortedTypes.forEach((type) => {
+      const items = typeGroups[type];
+      const group = document.createElement("div");
+      group.className = "type-group";
+      group.innerHTML = `
+        <div class="type-title">
+          <h3>${type}</h3>
+          <span>${items.length}곳</span>
+        </div>
+      `;
+      const list = document.createElement("div");
+      list.className = "list";
+      items.forEach((item) => list.appendChild(buildCard(item)));
+      group.appendChild(list);
+      publicList.appendChild(group);
+    });
+    emptyMap.public.style.display = "none";
+  } else {
+    emptyMap.public.style.display = "block";
+  }
+
+  ["farm", "popup"].forEach((sector) => {
     const list = listMap[sector];
     const items = grouped[sector] || [];
+    list.innerHTML = "";
     items.forEach((item) => {
       list.appendChild(buildCard(item));
     });
@@ -496,11 +518,9 @@ const init = () => {
     state.search = "";
     state.date = getLocalISODate();
     state.sort = "open";
-    state.type = "전체";
     document.getElementById("searchInput").value = "";
     document.getElementById("dateInput").value = state.date;
     document.getElementById("sortSelect").value = "open";
-    renderChips();
     render();
   });
 
@@ -526,7 +546,6 @@ const init = () => {
     });
   });
 
-  renderChips();
   render();
 };
 

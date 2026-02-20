@@ -492,31 +492,35 @@ main {
   margin-bottom: 20px;
 }
 
-.chip-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-
-.chip {
-  border: 1px solid var(--stroke);
-  background: #fff;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.chip.active {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
-}
-
 .list {
   display: grid;
   gap: 18px;
+}
+
+.type-group {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 20, 18, 0.08);
+}
+
+.type-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.type-title h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.type-title span {
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .card {
