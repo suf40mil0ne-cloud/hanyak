@@ -292,7 +292,8 @@ const facilities = [
     name: "딸기의하루",
     type: "딸기 체험",
     region: "인천 남동",
-    openDate: "네이버 예약",
+    openDate: "2026-02-23",
+    openTime: "12:00",
     availableStart: "2025-12-01",
     availableEnd: "2026-05-31",
     reservationUrl: "https://m.booking.naver.com/booking/6/bizes/590379",
@@ -426,7 +427,9 @@ const formatDateLong = (value) => {
 
 const formatOpenInfo = (item) => {
   if (item.openRule) return item.openRule;
-  return formatDate(item.openDate);
+  let info = formatDate(item.openDate);
+  if (item.openTime) info += ` ${item.openTime}`;
+  return info;
 };
 
 const withinRange = (date, start, end) => {
@@ -483,6 +486,11 @@ const buildCard = (item) => {
     ? `href="#" aria-disabled="true"`
     : `href="${item.reservationUrl}" target="_blank" rel="noopener"`;
 
+  const reviewUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(item.name + " 후기")}`;
+
+  const isSoon = item.openDate && item.openDate > getLocalISODate();
+  const soonBadge = isSoon ? `<span class="tag soon-badge">🔥 오픈런</span>` : "";
+
   card.innerHTML = `
     <div class="card-head">
       <div>
@@ -490,6 +498,7 @@ const buildCard = (item) => {
         <div class="card-tags">
           <span class="tag">${item.type}</span>
           <span class="tag">${item.region}</span>
+          ${soonBadge}
         </div>
       </div>
       <span class="status ${status.tone}">${status.label}</span>
@@ -512,7 +521,9 @@ const buildCard = (item) => {
       <a class="${linkClass}" ${linkAttrs}>
         예약 페이지
       </a>
-      <span class="tag">부모 추천</span>
+      <a href="${reviewUrl}" target="_blank" rel="noopener" class="link-btn">
+        후기 보기
+      </a>
     </div>
   `;
 
@@ -534,6 +545,10 @@ const buildSpotlightCard = (item, focusDate) => {
     ? `href="#" aria-disabled="true"`
     : `href="${item.reservationUrl}" target="_blank" rel="noopener"`;
 
+  const reviewUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(item.name + " 후기")}`;
+  const isSoon = item.openDate && item.openDate > getLocalISODate();
+  const soonBadge = isSoon ? `<span class="tag soon-badge">🔥 오픈런</span>` : "";
+
   card.innerHTML = `
     <div class="card-head">
       <div class="card-title">${item.name}</div>
@@ -545,11 +560,14 @@ const buildSpotlightCard = (item, focusDate) => {
     </div>
     <div class="spotlight-tags">
       <span class="tag">${item.type}</span>
-      <span class="tag">날짜 기준 추천</span>
+      ${soonBadge}
     </div>
     <div class="card-actions">
       <a class="${linkClass}" ${linkAttrs}>
-        예약 페이지
+        예약
+      </a>
+      <a href="${reviewUrl}" target="_blank" rel="noopener" class="link-btn">
+        후기
       </a>
     </div>
   `;

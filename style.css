@@ -642,6 +642,12 @@ main {
   animation: rise 0.4s ease;
 }
 
+.tag.soon-badge {
+  background: #ff6b2d;
+  color: #fff;
+  font-weight: 600;
+}
+
 .card.placeholder {
   background: #f8f3ea;
   color: var(--muted);
