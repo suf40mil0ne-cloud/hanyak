@@ -363,6 +363,25 @@ main {
   font-size: 0.85rem;
 }
 
+.open-alert {
+  margin-top: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(31, 111, 235, 0.2);
+  border-radius: 18px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.open-alert span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-left: 8px;
+}
+
 .season-note {
   margin-top: 24px;
   background: rgba(31, 111, 235, 0.08);
@@ -744,6 +763,40 @@ main {
 
 .spotlight-tags .tag {
   background: #eef2f8;
+}
+
+.open-schedule {
+  background: #f6f9ff;
+}
+
+.collapsed-group {
+  margin-top: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px dashed rgba(15, 28, 43, 0.2);
+}
+
+.collapsed-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.collapsed-head h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.collapsed-list {
+  display: none;
+  gap: 12px;
+}
+
+.collapsed-group.open .collapsed-list {
+  display: grid;
 }
 
 .about-grid {

@@ -1046,6 +1046,7 @@ const state = {
   regionFilter: "전체",
   openOnly: true,
   expandedSectors: [],
+  expandedUnconfirmed: [],
 };
 
 const listMap = {
@@ -1067,6 +1068,7 @@ const emptyMap = {
 
 const totalCountEl = document.getElementById("totalCount");
 const openCountEl = document.getElementById("openCount");
+const openAlertCountEl = document.getElementById("openAlertCount");
 const todayLabelEl = document.getElementById("todayLabel");
 const spotlightListEl = document.getElementById("spotlightList");
 const spotlightEmptyEl = document.getElementById("spotlightEmpty");
@@ -1074,6 +1076,8 @@ const spotlightHintEl = document.getElementById("spotlightHint");
 const regionListEl = document.getElementById("regionList");
 const regionFilterEl = document.getElementById("regionFilter");
 const regionSelectEl = document.getElementById("regionSelect");
+const openScheduleListEl = document.getElementById("openScheduleList");
+const openScheduleEmptyEl = document.getElementById("openScheduleEmpty");
 
 const updateThreeDayForecast = () => {
   const base = new Date();
@@ -1408,6 +1412,39 @@ const buildRegionCard = (region, items) => {
   return card;
 };
 
+const buildCollapsedGroup = (sector, items, title) => {
+  const wrapper = document.createElement("div");
+  wrapper.className = "collapsed-group";
+  const isOpen = state.expandedUnconfirmed.includes(sector);
+  if (isOpen) wrapper.classList.add("open");
+
+  const head = document.createElement("div");
+  head.className = "collapsed-head";
+  const label = document.createElement("h4");
+  label.textContent = `${title} (${items.length}곳)`;
+  const btn = document.createElement("button");
+  btn.className = "ghost";
+  btn.textContent = isOpen ? "접기" : "미확정 보기";
+  btn.onclick = () => {
+    if (isOpen) {
+      state.expandedUnconfirmed = state.expandedUnconfirmed.filter((s) => s !== sector);
+    } else {
+      state.expandedUnconfirmed.push(sector);
+    }
+    render();
+  };
+  head.appendChild(label);
+  head.appendChild(btn);
+
+  const list = document.createElement("div");
+  list.className = "collapsed-list list";
+  items.forEach((item) => list.appendChild(buildCard(item)));
+
+  wrapper.appendChild(head);
+  wrapper.appendChild(list);
+  return wrapper;
+};
+
 const renderShowMoreBtn = (sector, count, isExpanded) => {
   const container = document.createElement("div");
   container.className = "show-more-container";
@@ -1472,6 +1509,23 @@ const render = () => {
       return aKey.localeCompare(bKey, "ko");
     });
 
+  if (openScheduleListEl) {
+    const openItems = filtered.filter((item) => hasOpenSchedule(item));
+    const sortedOpen = [...openItems].sort((a, b) => {
+      const aKey = isDateString(a.openDate) ? a.openDate : "9999-12-31";
+      const bKey = isDateString(b.openDate) ? b.openDate : "9999-12-31";
+      if (aKey !== bKey) return aKey.localeCompare(bKey, "ko");
+      return a.name.localeCompare(b.name, "ko");
+    });
+    openScheduleListEl.innerHTML = "";
+    sortedOpen.slice(0, 12).forEach((item) => {
+      openScheduleListEl.appendChild(buildCard(item));
+    });
+    if (openScheduleEmptyEl) {
+      openScheduleEmptyEl.style.display = sortedOpen.length ? "none" : "block";
+    }
+  }
+
   Object.values(listMap).forEach((list) => {
     list.innerHTML = "";
   });
@@ -1486,7 +1540,7 @@ const render = () => {
   const publicItems = grouped.public || [];
   publicList.innerHTML = "";
   if (publicItems.length) {
-    const typeGroups = publicItems.reduce((acc, item) => {
+    const typeGroups = publicItems.filter(hasOpenSchedule).reduce((acc, item) => {
       if (!acc[item.type]) acc[item.type] = [];
       acc[item.type].push(item);
       return acc;
@@ -1533,6 +1587,11 @@ const render = () => {
     });
 
     publicList.appendChild(renderShowMoreBtn("public", sortedTypes.length > 3 ? 6 : 0, isExpanded)); // Fake count to trigger btn
+
+    const unconfirmed = publicItems.filter((item) => !hasOpenSchedule(item));
+    if (unconfirmed.length) {
+      publicList.appendChild(buildCollapsedGroup("public", unconfirmed, "오픈일 미확정(공공)"));
+    }
     emptyMap.public.style.display = "none";
   } else {
     emptyMap.public.style.display = "block";
@@ -1544,19 +1603,18 @@ const render = () => {
     list.innerHTML = "";
 
     const isExpanded = state.expandedSectors.includes(sector);
-    const prioritized = [...items].sort((a, b) => {
-      const aScore = hasOpenSchedule(a) ? 0 : 1;
-      const bScore = hasOpenSchedule(b) ? 0 : 1;
-      if (aScore !== bScore) return aScore - bScore;
-      return a.name.localeCompare(b.name, "ko");
-    });
-    const visibleItems = isExpanded ? prioritized : prioritized.slice(0, 5);
+    const confirmed = items.filter((item) => hasOpenSchedule(item));
+    const unconfirmed = items.filter((item) => !hasOpenSchedule(item));
+    const visibleItems = isExpanded ? confirmed : confirmed.slice(0, 5);
 
     visibleItems.forEach((item) => {
       list.appendChild(buildCard(item));
     });
-    
-    list.appendChild(renderShowMoreBtn(sector, items.length, isExpanded));
+
+    list.appendChild(renderShowMoreBtn(sector, confirmed.length, isExpanded));
+    if (unconfirmed.length) {
+      list.appendChild(buildCollapsedGroup(sector, unconfirmed, "오픈일 미확정"));
+    }
     emptyMap[sector].style.display = items.length ? "none" : "block";
   });
 
@@ -1584,6 +1642,9 @@ const render = () => {
   totalCountEl.textContent = facilities.length;
   if (openCountEl) {
     openCountEl.textContent = facilities.filter((item) => hasOpenSchedule(item)).length;
+  }
+  if (openAlertCountEl) {
+    openAlertCountEl.textContent = `${facilities.filter((item) => hasOpenSchedule(item)).length}곳`;
   }
   updateSpotlight();
   updateThreeDayForecast();
