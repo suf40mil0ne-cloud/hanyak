@@ -1045,6 +1045,7 @@ const state = {
   sort: "open",
   regionFilter: "전체",
   openOnly: true,
+  openWindow7: true,
   expandedSectors: [],
   expandedUnconfirmed: [],
 };
@@ -1078,6 +1079,8 @@ const regionFilterEl = document.getElementById("regionFilter");
 const regionSelectEl = document.getElementById("regionSelect");
 const openScheduleListEl = document.getElementById("openScheduleList");
 const openScheduleEmptyEl = document.getElementById("openScheduleEmpty");
+const calendarListEl = document.getElementById("calendarList");
+const calendarEmptyEl = document.getElementById("calendarEmpty");
 
 const updateThreeDayForecast = () => {
   const base = new Date();
@@ -1110,7 +1113,7 @@ const updateThreeDayForecast = () => {
     });
 
     const constrained = state.openOnly
-      ? sorted.filter((item) => isUpcomingOpen(item))
+      ? sorted.filter((item) => matchesOpenWindow(item))
       : sorted;
 
     constrained.slice(0, 4).forEach((item) => {
@@ -1175,6 +1178,20 @@ const hasOpenSchedule = (item) => {
 const isUpcomingOpen = (item) => {
   if (!isDateString(item.openDate)) return false;
   return item.openDate > getLocalISODate();
+};
+
+const isWithinNext7Days = (dateStr) => {
+  if (!isDateString(dateStr)) return false;
+  const today = new Date(getLocalISODate() + "T00:00:00");
+  const target = new Date(dateStr + "T00:00:00");
+  const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  return diffDays >= 1 && diffDays <= 7;
+};
+
+const matchesOpenWindow = (item) => {
+  if (!isUpcomingOpen(item)) return false;
+  if (!state.openWindow7) return true;
+  return isWithinNext7Days(item.openDate);
 };
 
 const getRegionGroup = (region = "") => {
@@ -1491,7 +1508,7 @@ const updateSpotlight = () => {
 
   spotlightListEl.innerHTML = "";
   const constrained = state.openOnly
-    ? sorted.filter((item) => isUpcomingOpen(item))
+    ? sorted.filter((item) => matchesOpenWindow(item))
     : sorted;
   constrained.slice(0, 6).forEach((item) => {
     spotlightListEl.appendChild(buildSpotlightCard(item, focusDate));
@@ -1505,7 +1522,7 @@ const render = () => {
     .filter((item) => item.name.includes(state.search))
     .filter((item) => matchesDateFilter(item))
     .filter((item) => state.regionFilter === "전체" || getRegionGroup(item.region) === state.regionFilter)
-    .filter((item) => !state.openOnly || isUpcomingOpen(item))
+    .filter((item) => !state.openOnly || matchesOpenWindow(item))
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
       if (state.sort === "start") return a.availableStart.localeCompare(b.availableStart, "ko");
@@ -1515,7 +1532,7 @@ const render = () => {
     });
 
   if (openScheduleListEl) {
-    const openItems = filtered.filter((item) => isUpcomingOpen(item));
+    const openItems = filtered.filter((item) => matchesOpenWindow(item));
     const sortedOpen = [...openItems].sort((a, b) => {
       const aKey = isDateString(a.openDate) ? a.openDate : "9999-12-31";
       const bKey = isDateString(b.openDate) ? b.openDate : "9999-12-31";
@@ -1528,6 +1545,38 @@ const render = () => {
     });
     if (openScheduleEmptyEl) {
       openScheduleEmptyEl.style.display = sortedOpen.length ? "none" : "block";
+    }
+  }
+
+  if (calendarListEl) {
+    const calendarItems = filtered
+      .filter((item) => matchesOpenWindow(item))
+      .filter((item) => isDateString(item.openDate))
+      .sort((a, b) => a.openDate.localeCompare(b.openDate, "ko"));
+
+    const groupedByDate = calendarItems.reduce((acc, item) => {
+      if (!acc[item.openDate]) acc[item.openDate] = [];
+      acc[item.openDate].push(item);
+      return acc;
+    }, {});
+
+    calendarListEl.innerHTML = "";
+    const dates = Object.keys(groupedByDate).sort((a, b) => a.localeCompare(b, "ko"));
+    dates.forEach((date) => {
+      const day = document.createElement("div");
+      day.className = "calendar-day";
+      const head = document.createElement("div");
+      head.className = "calendar-head";
+      head.innerHTML = `<strong>${formatDateLong(date)}</strong><span>${groupedByDate[date].length}곳</span>`;
+      day.appendChild(head);
+      const list = document.createElement("div");
+      list.className = "list";
+      groupedByDate[date].forEach((item) => list.appendChild(buildCard(item)));
+      day.appendChild(list);
+      calendarListEl.appendChild(day);
+    });
+    if (calendarEmptyEl) {
+      calendarEmptyEl.style.display = dates.length ? "none" : "block";
     }
   }
 
@@ -1545,7 +1594,7 @@ const render = () => {
   const publicItems = grouped.public || [];
   publicList.innerHTML = "";
   if (publicItems.length) {
-    const typeGroups = publicItems.filter(isUpcomingOpen).reduce((acc, item) => {
+    const typeGroups = publicItems.filter(matchesOpenWindow).reduce((acc, item) => {
       if (!acc[item.type]) acc[item.type] = [];
       acc[item.type].push(item);
       return acc;
@@ -1593,7 +1642,7 @@ const render = () => {
 
     publicList.appendChild(renderShowMoreBtn("public", sortedTypes.length > 3 ? 6 : 0, isExpanded)); // Fake count to trigger btn
 
-    const unconfirmed = publicItems.filter((item) => !isUpcomingOpen(item));
+    const unconfirmed = publicItems.filter((item) => !matchesOpenWindow(item));
     if (unconfirmed.length) {
       publicList.appendChild(buildCollapsedGroup("public", unconfirmed, "오픈일 미확정(공공)"));
     }
@@ -1608,8 +1657,8 @@ const render = () => {
     list.innerHTML = "";
 
     const isExpanded = state.expandedSectors.includes(sector);
-    const confirmed = items.filter((item) => isUpcomingOpen(item));
-    const unconfirmed = items.filter((item) => !isUpcomingOpen(item));
+    const confirmed = items.filter((item) => matchesOpenWindow(item));
+    const unconfirmed = items.filter((item) => !matchesOpenWindow(item));
     const visibleItems = isExpanded ? confirmed : confirmed.slice(0, 5);
 
     visibleItems.forEach((item) => {
@@ -1646,10 +1695,10 @@ const render = () => {
 
   totalCountEl.textContent = facilities.length;
   if (openCountEl) {
-    openCountEl.textContent = facilities.filter((item) => isUpcomingOpen(item)).length;
+    openCountEl.textContent = facilities.filter((item) => matchesOpenWindow(item)).length;
   }
   if (openAlertCountEl) {
-    openAlertCountEl.textContent = `${facilities.filter((item) => isUpcomingOpen(item)).length}곳`;
+    openAlertCountEl.textContent = `${facilities.filter((item) => matchesOpenWindow(item)).length}곳`;
   }
   updateSpotlight();
   updateThreeDayForecast();
@@ -1697,6 +1746,14 @@ const init = () => {
     });
   }
 
+  const openWindowEl = document.getElementById("openWindow7");
+  if (openWindowEl) {
+    openWindowEl.addEventListener("change", (event) => {
+      state.openWindow7 = event.target.checked;
+      render();
+    });
+  }
+
   document.getElementById("dateInput").addEventListener("change", (event) => {
     state.date = event.target.value;
     render();
@@ -1713,12 +1770,14 @@ const init = () => {
     state.sort = "open";
     state.regionFilter = "전체";
     state.openOnly = true;
+    state.openWindow7 = true;
     document.getElementById("searchInput").value = "";
     document.getElementById("dateInput").value = state.date;
     document.getElementById("sortSelect").value = "open";
     if (regionFilterEl) regionFilterEl.value = "전체";
     if (regionSelectEl) regionSelectEl.value = "전체";
     if (openOnlyEl) openOnlyEl.checked = true;
+    if (openWindowEl) openWindowEl.checked = true;
     render();
   });
 

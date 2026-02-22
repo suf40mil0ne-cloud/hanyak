@@ -69,7 +69,10 @@
             <strong>오픈 예정 시설</strong>
             <span id="openAlertCount">0곳</span>
           </div>
-          <button class="primary">알림 받기</button>
+          <div class="alert-actions">
+            <button class="ghost">카카오 알림</button>
+            <button class="ghost">메일 알림</button>
+          </div>
         </div>
         <div class="season-note">
           <strong>여름 준비</strong>
@@ -200,6 +203,10 @@
           <input type="checkbox" id="openOnly" checked />
           오픈 예정 시설만 보기
         </label>
+        <label class="toggle">
+          <input type="checkbox" id="openWindow7" checked />
+          오픈 D-7 이내만 보기
+        </label>
         <button class="primary" id="resetBtn">필터 초기화</button>
       </div>
     </section>
@@ -220,6 +227,15 @@
       </div>
       <div class="list" id="openScheduleList"></div>
       <p class="empty" id="openScheduleEmpty">오픈 예정 시설이 없습니다.</p>
+    </section>
+
+    <section class="section calendar" id="calendar">
+      <div class="section-head">
+        <h2>오픈일 캘린더</h2>
+        <p>날짜별로 예약 오픈일을 모아 봅니다.</p>
+      </div>
+      <div class="calendar-list" id="calendarList"></div>
+      <p class="empty" id="calendarEmpty">표시할 오픈일이 없습니다.</p>
     </section>
 
     <section class="ad-strip" aria-label="광고 영역">
