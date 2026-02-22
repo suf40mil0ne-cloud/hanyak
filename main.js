@@ -1105,12 +1105,16 @@ const updateThreeDayForecast = () => {
       return a.name.localeCompare(b.name, "ko");
     });
 
-    sorted.slice(0, 4).forEach((item) => {
+    const constrained = state.openOnly
+      ? sorted.filter((item) => hasOpenSchedule(item))
+      : sorted;
+
+    constrained.slice(0, 4).forEach((item) => {
       const card = buildSpotlightCard(item, focusDate);
       listEl.appendChild(card);
     });
 
-    emptyEl.style.display = sorted.length ? "none" : "block";
+    emptyEl.style.display = constrained.length ? "none" : "block";
   }
 };
 
@@ -1444,10 +1448,13 @@ const updateSpotlight = () => {
   });
 
   spotlightListEl.innerHTML = "";
-  sorted.slice(0, 6).forEach((item) => {
+  const constrained = state.openOnly
+    ? sorted.filter((item) => hasOpenSchedule(item))
+    : sorted;
+  constrained.slice(0, 6).forEach((item) => {
     spotlightListEl.appendChild(buildSpotlightCard(item, focusDate));
   });
-  spotlightEmptyEl.style.display = sorted.length ? "none" : "block";
+  spotlightEmptyEl.style.display = constrained.length ? "none" : "block";
   spotlightHintEl.textContent = `${formatDateLong(focusDate)} 기준입니다.`;
 };
 
@@ -1514,7 +1521,13 @@ const render = () => {
       `;
       const list = document.createElement("div");
       list.className = "list";
-      items.forEach((item) => list.appendChild(buildCard(item)));
+      const prioritizedItems = [...items].sort((a, b) => {
+        const aScore = hasOpenSchedule(a) ? 0 : 1;
+        const bScore = hasOpenSchedule(b) ? 0 : 1;
+        if (aScore !== bScore) return aScore - bScore;
+        return a.name.localeCompare(b.name, "ko");
+      });
+      prioritizedItems.forEach((item) => list.appendChild(buildCard(item)));
       group.appendChild(list);
       publicList.appendChild(group);
     });
@@ -1529,9 +1542,15 @@ const render = () => {
     const list = listMap[sector];
     const items = grouped[sector] || [];
     list.innerHTML = "";
-    
+
     const isExpanded = state.expandedSectors.includes(sector);
-    const visibleItems = isExpanded ? items : items.slice(0, 5);
+    const prioritized = [...items].sort((a, b) => {
+      const aScore = hasOpenSchedule(a) ? 0 : 1;
+      const bScore = hasOpenSchedule(b) ? 0 : 1;
+      if (aScore !== bScore) return aScore - bScore;
+      return a.name.localeCompare(b.name, "ko");
+    });
+    const visibleItems = isExpanded ? prioritized : prioritized.slice(0, 5);
 
     visibleItems.forEach((item) => {
       list.appendChild(buildCard(item));

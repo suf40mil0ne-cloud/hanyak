@@ -70,48 +70,16 @@
         </div>
       </div>
       <div class="hero-panel">
-        <div class="panel-card">
-          <h2>빠른 필터</h2>
-          <div class="filter-stack">
-            <label class="field">
-              시설명 검색
-              <input type="text" id="searchInput" placeholder="예: 시립미술관" />
-            </label>
-            <label class="field">
-              지역 선택
-              <select id="regionFilter">
-                <option value="전체">전체 지역</option>
-              </select>
-            </label>
-            <label class="toggle">
-              <input type="checkbox" id="openOnly" checked />
-              예약 오픈일 확정 시설만 보기
-            </label>
-            <label class="field">
-              원하는 날짜
-              <input type="date" id="dateInput" />
-            </label>
-            <label class="field">
-              정렬 기준
-              <select id="sortSelect">
-                <option value="open">예약 오픈일</option>
-                <option value="start">관람 시작일</option>
-                <option value="name">시설명</option>
-              </select>
-            </label>
-            <button class="primary full" id="resetBtn">필터 초기화</button>
-          </div>
-        </div>
         <div class="panel-card notice">
-          <h3>부모를 위한 핵심 요약</h3>
+          <h3>한곳에서 확인해야 하는 이유</h3>
           <ul>
-            <li>예약 오픈일을 놓치지 않게 요약</li>
-            <li>아이와 함께 가능한 시설 우선 정리</li>
+            <li>오픈일이 정해진 시설만 먼저 확인</li>
+            <li>알림 없이도 일정이 정리된 상태</li>
             <li>예약 페이지까지 바로 이동</li>
           </ul>
         </div>
         <div class="panel-card highlight">
-          <h3>운영주체 · 지역별 탐색</h3>
+          <h3>분류 · 지역별 탐색</h3>
           <p>공공기관/민간/농장/팝업/물놀이터를 구분하고 지역 필터로 빠르게 좁혀보세요.</p>
           <div class="chip-row">
             <span class="chip">공공기관</span>
@@ -190,6 +158,42 @@
           <div class="tab-title">운영 정책</div>
           <p>콘텐츠 기준과 신뢰</p>
         </a>
+      </div>
+    </section>
+
+    <section class="section control" id="controls">
+      <div class="section-head">
+        <h2>빠른 필터</h2>
+        <p>오픈일 확정 시설만 먼저 보고, 필요할 때만 확장하세요.</p>
+      </div>
+      <div class="control-grid">
+        <label class="field">
+          시설명 검색
+          <input type="text" id="searchInput" placeholder="예: 시립미술관" />
+        </label>
+        <label class="field">
+          지역 선택
+          <select id="regionFilter">
+            <option value="전체">전체 지역</option>
+          </select>
+        </label>
+        <label class="field">
+          원하는 날짜
+          <input type="date" id="dateInput" />
+        </label>
+        <label class="field">
+          정렬 기준
+          <select id="sortSelect">
+            <option value="open">예약 오픈일</option>
+            <option value="start">관람 시작일</option>
+            <option value="name">시설명</option>
+          </select>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="openOnly" checked />
+          예약 오픈일 확정 시설만 보기
+        </label>
+        <button class="primary" id="resetBtn">필터 초기화</button>
       </div>
     </section>
 

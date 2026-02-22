@@ -393,6 +393,29 @@ main {
   border: 1px solid rgba(15, 20, 18, 0.08);
 }
 
+.control {
+  padding-top: 12px;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px;
+  border: 1px solid rgba(15, 28, 43, 0.08);
+  box-shadow: var(--shadow-soft);
+}
+
+.control-grid .toggle {
+  align-self: end;
+}
+
+.control-grid .primary {
+  align-self: end;
+}
+
 .panel-card h2 {
   margin-bottom: 18px;
 }
