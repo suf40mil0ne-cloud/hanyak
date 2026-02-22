@@ -52,7 +52,7 @@
             <strong id="totalCount">0</strong>
           </div>
           <div>
-            <span class="label">오픈 예정</span>
+            <span class="label">오픈일 확정</span>
             <strong id="openCount">0</strong>
           </div>
           <div>
@@ -66,7 +66,7 @@
         </div>
         <div class="open-alert">
           <div>
-            <strong>오픈 예정 시설</strong>
+            <strong>오픈일 확정 시설</strong>
             <span id="openAlertCount">0곳</span>
           </div>
           <div class="alert-actions">
@@ -199,14 +199,6 @@
             <option value="name">시설명</option>
           </select>
         </label>
-        <label class="toggle">
-          <input type="checkbox" id="openOnly" checked />
-          오픈 예정 시설만 보기
-        </label>
-        <label class="toggle">
-          <input type="checkbox" id="openWindow7" checked />
-          오픈 D-7 이내만 보기
-        </label>
         <button class="primary" id="resetBtn">필터 초기화</button>
       </div>
     </section>
@@ -222,20 +214,20 @@
 
     <section class="section open-schedule" id="openSchedule">
       <div class="section-head">
-        <h2>오픈 예정 시설만 모아보기</h2>
-        <p>오늘 이후 오픈되는 시설만 정리했습니다.</p>
+        <h2>오픈일 확정 시설</h2>
+        <p>날짜와 시간까지 정해진 예약 오픈일만 모았습니다.</p>
       </div>
       <div class="list" id="openScheduleList"></div>
-      <p class="empty" id="openScheduleEmpty">오픈 예정 시설이 없습니다.</p>
+      <p class="empty" id="openScheduleEmpty">오픈일 확정 시설이 없습니다.</p>
     </section>
 
-    <section class="section calendar" id="calendar">
+    <section class="section calendar" id="alwaysOpen">
       <div class="section-head">
-        <h2>오픈일 캘린더</h2>
-        <p>날짜별로 예약 오픈일을 모아 봅니다.</p>
+        <h2>상시 예약 가능</h2>
+        <p>오픈일 없이 상시 예약 가능한 곳입니다.</p>
       </div>
-      <div class="calendar-list" id="calendarList"></div>
-      <p class="empty" id="calendarEmpty">표시할 오픈일이 없습니다.</p>
+      <div class="list" id="alwaysOpenList"></div>
+      <p class="empty" id="alwaysOpenEmpty">상시 예약 가능한 시설이 없습니다.</p>
     </section>
 
     <section class="ad-strip" aria-label="광고 영역">

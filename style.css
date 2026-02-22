@@ -779,39 +779,6 @@ main {
   background: #f7f7fb;
 }
 
-.calendar-list {
-  display: grid;
-  gap: 16px;
-}
-
-.calendar-day {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 18px;
-  border: 1px solid rgba(15, 28, 43, 0.08);
-  box-shadow: var(--shadow-soft);
-  display: grid;
-  gap: 12px;
-}
-
-.calendar-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border-bottom: 1px dashed rgba(15, 28, 43, 0.15);
-  padding-bottom: 10px;
-}
-
-.calendar-head strong {
-  font-size: 1.05rem;
-}
-
-.calendar-head span {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
 .collapsed-group {
   margin-top: 18px;
   background: rgba(255, 255, 255, 0.9);

@@ -1044,8 +1044,6 @@ const state = {
   date: "",
   sort: "open",
   regionFilter: "전체",
-  openOnly: true,
-  openWindow7: true,
   expandedSectors: [],
   expandedUnconfirmed: [],
 };
@@ -1079,8 +1077,8 @@ const regionFilterEl = document.getElementById("regionFilter");
 const regionSelectEl = document.getElementById("regionSelect");
 const openScheduleListEl = document.getElementById("openScheduleList");
 const openScheduleEmptyEl = document.getElementById("openScheduleEmpty");
-const calendarListEl = document.getElementById("calendarList");
-const calendarEmptyEl = document.getElementById("calendarEmpty");
+const alwaysOpenListEl = document.getElementById("alwaysOpenList");
+const alwaysOpenEmptyEl = document.getElementById("alwaysOpenEmpty");
 
 const updateThreeDayForecast = () => {
   const base = new Date();
@@ -1112,9 +1110,7 @@ const updateThreeDayForecast = () => {
       return a.name.localeCompare(b.name, "ko");
     });
 
-    const constrained = state.openOnly
-      ? sorted.filter((item) => matchesOpenWindow(item))
-      : sorted;
+    const constrained = sorted.filter((item) => hasOpenSchedule(item));
 
     constrained.slice(0, 4).forEach((item) => {
       const card = buildSpotlightCard(item, focusDate);
@@ -1157,48 +1153,9 @@ const formatOpenInfo = (item) => {
   return info;
 };
 
-const hasOpenSchedule = (item) => {
-  if (isDateString(item.openDate)) return true;
-  const rule = (item.openRule || "").trim();
-  if (!rule) return false;
-  const excluded = [
-    "예약 페이지 확인",
-    "공식 공지 확인 필요",
-    "네이버 예약",
-    "상시 예약",
-    "전화 문의",
-    "상담/예약",
-    "지도/예약 확인",
-    "정보 확인",
-  ];
-  if (excluded.includes(rule)) return false;
-  return true;
-};
+const hasOpenSchedule = (item) => isDateString(item.openDate);
 
-const isUpcomingOpen = (item) => {
-  if (!isDateString(item.openDate)) return false;
-  return item.openDate > getLocalISODate();
-};
-
-const isWithinNext7Days = (dateStr) => {
-  if (!isDateString(dateStr)) return false;
-  const today = new Date(getLocalISODate() + "T00:00:00");
-  const target = new Date(dateStr + "T00:00:00");
-  const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-  return diffDays >= 1 && diffDays <= 7;
-};
-
-const matchesOpenWindow = (item) => {
-  if (!isUpcomingOpen(item)) return false;
-  if (!state.openWindow7) return true;
-  return isWithinNext7Days(item.openDate);
-};
-
-const isBookableToday = (item) => {
-  const todayStr = getLocalISODate();
-  if (isDateString(item.openDate) && item.openDate > todayStr) return false;
-  return withinRange(todayStr, item.availableStart, item.availableEnd, item.openDate);
-};
+const isAlwaysBookable = (item) => !hasOpenSchedule(item);
 
 const getRegionGroup = (region = "") => {
   if (!region || region.includes("정보") || region.includes("확인")) return "기타";
@@ -1452,7 +1409,7 @@ const buildCollapsedGroup = (sector, items, title) => {
   label.textContent = `${title} (${items.length}곳)`;
   const btn = document.createElement("button");
   btn.className = "ghost";
-  btn.textContent = isOpen ? "접기" : "참고로 보기";
+  btn.textContent = isOpen ? "접기" : "펼치기";
   btn.onclick = () => {
     if (isOpen) {
       state.expandedUnconfirmed = state.expandedUnconfirmed.filter((s) => s !== sector);
@@ -1513,9 +1470,7 @@ const updateSpotlight = () => {
   });
 
   spotlightListEl.innerHTML = "";
-  const constrained = state.openOnly
-    ? sorted.filter((item) => matchesOpenWindow(item))
-    : sorted;
+  const constrained = sorted.filter((item) => hasOpenSchedule(item));
   constrained.slice(0, 6).forEach((item) => {
     spotlightListEl.appendChild(buildSpotlightCard(item, focusDate));
   });
@@ -1524,16 +1479,10 @@ const updateSpotlight = () => {
 };
 
 const render = () => {
-  const baseFiltered = facilities
+  const filtered = facilities
     .filter((item) => item.name.includes(state.search))
-    .filter((item) => state.regionFilter === "전체" || getRegionGroup(item.region) === state.regionFilter);
-
-  const dateFiltered = state.openOnly
-    ? baseFiltered
-    : baseFiltered.filter((item) => matchesDateFilter(item));
-
-  const filtered = dateFiltered
-    .filter((item) => !state.openOnly || matchesOpenWindow(item))
+    .filter((item) => matchesDateFilter(item))
+    .filter((item) => state.regionFilter === "전체" || getRegionGroup(item.region) === state.regionFilter)
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
       if (state.sort === "start") return a.availableStart.localeCompare(b.availableStart, "ko");
@@ -1543,7 +1492,7 @@ const render = () => {
     });
 
   if (openScheduleListEl) {
-    const openItems = filtered.filter((item) => matchesOpenWindow(item));
+    const openItems = filtered.filter((item) => hasOpenSchedule(item));
     const sortedOpen = [...openItems].sort((a, b) => {
       const aKey = isDateString(a.openDate) ? a.openDate : "9999-12-31";
       const bKey = isDateString(b.openDate) ? b.openDate : "9999-12-31";
@@ -1558,36 +1507,12 @@ const render = () => {
       openScheduleEmptyEl.style.display = sortedOpen.length ? "none" : "block";
     }
   }
-
-  if (calendarListEl) {
-    const calendarItems = filtered
-      .filter((item) => matchesOpenWindow(item))
-      .filter((item) => isDateString(item.openDate))
-      .sort((a, b) => a.openDate.localeCompare(b.openDate, "ko"));
-
-    const groupedByDate = calendarItems.reduce((acc, item) => {
-      if (!acc[item.openDate]) acc[item.openDate] = [];
-      acc[item.openDate].push(item);
-      return acc;
-    }, {});
-
-    calendarListEl.innerHTML = "";
-    const dates = Object.keys(groupedByDate).sort((a, b) => a.localeCompare(b, "ko"));
-    dates.forEach((date) => {
-      const day = document.createElement("div");
-      day.className = "calendar-day";
-      const head = document.createElement("div");
-      head.className = "calendar-head";
-      head.innerHTML = `<strong>${formatDateLong(date)}</strong><span>${groupedByDate[date].length}곳</span>`;
-      day.appendChild(head);
-      const list = document.createElement("div");
-      list.className = "list";
-      groupedByDate[date].forEach((item) => list.appendChild(buildCard(item)));
-      day.appendChild(list);
-      calendarListEl.appendChild(day);
-    });
-    if (calendarEmptyEl) {
-      calendarEmptyEl.style.display = dates.length ? "none" : "block";
+  if (alwaysOpenListEl) {
+    const alwaysItems = filtered.filter((item) => isAlwaysBookable(item));
+    alwaysOpenListEl.innerHTML = "";
+    alwaysItems.forEach((item) => alwaysOpenListEl.appendChild(buildCard(item)));
+    if (alwaysOpenEmptyEl) {
+      alwaysOpenEmptyEl.style.display = alwaysItems.length ? "none" : "block";
     }
   }
 
@@ -1605,9 +1530,8 @@ const render = () => {
   const publicItems = grouped.public || [];
   publicList.innerHTML = "";
   if (publicItems.length) {
-    const upcomingPublic = publicItems.filter(matchesOpenWindow);
-    const bookablePublic = publicItems.filter(isBookableToday);
-    const unconfirmedPublic = publicItems.filter((item) => !matchesOpenWindow(item) && !isBookableToday(item));
+    const upcomingPublic = publicItems.filter(hasOpenSchedule);
+    const unconfirmedPublic = publicItems.filter((item) => !hasOpenSchedule(item));
 
     const typeGroups = upcomingPublic.reduce((acc, item) => {
       if (!acc[item.type]) acc[item.type] = [];
@@ -1657,11 +1581,8 @@ const render = () => {
 
     publicList.appendChild(renderShowMoreBtn("public", sortedTypes.length > 3 ? 6 : 0, isExpanded)); // Fake count to trigger btn
 
-    if (bookablePublic.length) {
-      publicList.appendChild(buildCollapsedGroup("public-bookable", bookablePublic, "현재 예약 가능(참고)"));
-    }
     if (unconfirmedPublic.length) {
-      publicList.appendChild(buildCollapsedGroup("public", unconfirmedPublic, "오픈일 미확정(공공)"));
+      publicList.appendChild(buildCollapsedGroup("public", unconfirmedPublic, "상시 예약 가능(공공)"));
     }
     emptyMap.public.style.display = "none";
   } else {
@@ -1674,9 +1595,8 @@ const render = () => {
     list.innerHTML = "";
 
     const isExpanded = state.expandedSectors.includes(sector);
-    const confirmed = items.filter((item) => matchesOpenWindow(item));
-    const bookable = items.filter((item) => isBookableToday(item));
-    const unconfirmed = items.filter((item) => !matchesOpenWindow(item) && !isBookableToday(item));
+    const confirmed = items.filter((item) => hasOpenSchedule(item));
+    const unconfirmed = items.filter((item) => !hasOpenSchedule(item));
     const visibleItems = isExpanded ? confirmed : confirmed.slice(0, 5);
 
     visibleItems.forEach((item) => {
@@ -1684,11 +1604,8 @@ const render = () => {
     });
 
     list.appendChild(renderShowMoreBtn(sector, confirmed.length, isExpanded));
-    if (bookable.length) {
-      list.appendChild(buildCollapsedGroup(`${sector}-bookable`, bookable, "현재 예약 가능(참고)"));
-    }
     if (unconfirmed.length) {
-      list.appendChild(buildCollapsedGroup(sector, unconfirmed, "오픈일 미확정"));
+      list.appendChild(buildCollapsedGroup(sector, unconfirmed, "상시 예약 가능"));
     }
     emptyMap[sector].style.display = items.length ? "none" : "block";
   });
@@ -1716,10 +1633,10 @@ const render = () => {
 
   totalCountEl.textContent = facilities.length;
   if (openCountEl) {
-    openCountEl.textContent = facilities.filter((item) => matchesOpenWindow(item)).length;
+    openCountEl.textContent = facilities.filter((item) => hasOpenSchedule(item)).length;
   }
   if (openAlertCountEl) {
-    openAlertCountEl.textContent = `${facilities.filter((item) => matchesOpenWindow(item)).length}곳`;
+    openAlertCountEl.textContent = `${facilities.filter((item) => hasOpenSchedule(item)).length}곳`;
   }
   updateSpotlight();
   updateThreeDayForecast();
@@ -1759,22 +1676,6 @@ const init = () => {
     });
   }
 
-  const openOnlyEl = document.getElementById("openOnly");
-  if (openOnlyEl) {
-    openOnlyEl.addEventListener("change", (event) => {
-      state.openOnly = event.target.checked;
-      render();
-    });
-  }
-
-  const openWindowEl = document.getElementById("openWindow7");
-  if (openWindowEl) {
-    openWindowEl.addEventListener("change", (event) => {
-      state.openWindow7 = event.target.checked;
-      render();
-    });
-  }
-
   document.getElementById("dateInput").addEventListener("change", (event) => {
     state.date = event.target.value;
     render();
@@ -1790,15 +1691,11 @@ const init = () => {
     state.date = getLocalISODate();
     state.sort = "open";
     state.regionFilter = "전체";
-    state.openOnly = true;
-    state.openWindow7 = true;
     document.getElementById("searchInput").value = "";
     document.getElementById("dateInput").value = state.date;
     document.getElementById("sortSelect").value = "open";
     if (regionFilterEl) regionFilterEl.value = "전체";
     if (regionSelectEl) regionSelectEl.value = "전체";
-    if (openOnlyEl) openOnlyEl.checked = true;
-    if (openWindowEl) openWindowEl.checked = true;
     render();
   });
 
