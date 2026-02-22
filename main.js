@@ -1110,7 +1110,7 @@ const updateThreeDayForecast = () => {
     });
 
     const constrained = state.openOnly
-      ? sorted.filter((item) => hasOpenSchedule(item))
+      ? sorted.filter((item) => isUpcomingOpen(item))
       : sorted;
 
     constrained.slice(0, 4).forEach((item) => {
@@ -1170,6 +1170,11 @@ const hasOpenSchedule = (item) => {
   ];
   if (excluded.includes(rule)) return false;
   return true;
+};
+
+const isUpcomingOpen = (item) => {
+  if (!isDateString(item.openDate)) return false;
+  return item.openDate > getLocalISODate();
 };
 
 const getRegionGroup = (region = "") => {
@@ -1486,7 +1491,7 @@ const updateSpotlight = () => {
 
   spotlightListEl.innerHTML = "";
   const constrained = state.openOnly
-    ? sorted.filter((item) => hasOpenSchedule(item))
+    ? sorted.filter((item) => isUpcomingOpen(item))
     : sorted;
   constrained.slice(0, 6).forEach((item) => {
     spotlightListEl.appendChild(buildSpotlightCard(item, focusDate));
@@ -1500,7 +1505,7 @@ const render = () => {
     .filter((item) => item.name.includes(state.search))
     .filter((item) => matchesDateFilter(item))
     .filter((item) => state.regionFilter === "전체" || getRegionGroup(item.region) === state.regionFilter)
-    .filter((item) => !state.openOnly || hasOpenSchedule(item))
+    .filter((item) => !state.openOnly || isUpcomingOpen(item))
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
       if (state.sort === "start") return a.availableStart.localeCompare(b.availableStart, "ko");
@@ -1510,7 +1515,7 @@ const render = () => {
     });
 
   if (openScheduleListEl) {
-    const openItems = filtered.filter((item) => hasOpenSchedule(item));
+    const openItems = filtered.filter((item) => isUpcomingOpen(item));
     const sortedOpen = [...openItems].sort((a, b) => {
       const aKey = isDateString(a.openDate) ? a.openDate : "9999-12-31";
       const bKey = isDateString(b.openDate) ? b.openDate : "9999-12-31";
@@ -1540,7 +1545,7 @@ const render = () => {
   const publicItems = grouped.public || [];
   publicList.innerHTML = "";
   if (publicItems.length) {
-    const typeGroups = publicItems.filter(hasOpenSchedule).reduce((acc, item) => {
+    const typeGroups = publicItems.filter(isUpcomingOpen).reduce((acc, item) => {
       if (!acc[item.type]) acc[item.type] = [];
       acc[item.type].push(item);
       return acc;
@@ -1588,7 +1593,7 @@ const render = () => {
 
     publicList.appendChild(renderShowMoreBtn("public", sortedTypes.length > 3 ? 6 : 0, isExpanded)); // Fake count to trigger btn
 
-    const unconfirmed = publicItems.filter((item) => !hasOpenSchedule(item));
+    const unconfirmed = publicItems.filter((item) => !isUpcomingOpen(item));
     if (unconfirmed.length) {
       publicList.appendChild(buildCollapsedGroup("public", unconfirmed, "오픈일 미확정(공공)"));
     }
@@ -1603,8 +1608,8 @@ const render = () => {
     list.innerHTML = "";
 
     const isExpanded = state.expandedSectors.includes(sector);
-    const confirmed = items.filter((item) => hasOpenSchedule(item));
-    const unconfirmed = items.filter((item) => !hasOpenSchedule(item));
+    const confirmed = items.filter((item) => isUpcomingOpen(item));
+    const unconfirmed = items.filter((item) => !isUpcomingOpen(item));
     const visibleItems = isExpanded ? confirmed : confirmed.slice(0, 5);
 
     visibleItems.forEach((item) => {
@@ -1641,10 +1646,10 @@ const render = () => {
 
   totalCountEl.textContent = facilities.length;
   if (openCountEl) {
-    openCountEl.textContent = facilities.filter((item) => hasOpenSchedule(item)).length;
+    openCountEl.textContent = facilities.filter((item) => isUpcomingOpen(item)).length;
   }
   if (openAlertCountEl) {
-    openAlertCountEl.textContent = `${facilities.filter((item) => hasOpenSchedule(item)).length}곳`;
+    openAlertCountEl.textContent = `${facilities.filter((item) => isUpcomingOpen(item)).length}곳`;
   }
   updateSpotlight();
   updateThreeDayForecast();
