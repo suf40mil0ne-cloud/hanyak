@@ -1452,7 +1452,7 @@ const buildCollapsedGroup = (sector, items, title) => {
   label.textContent = `${title} (${items.length}곳)`;
   const btn = document.createElement("button");
   btn.className = "ghost";
-  btn.textContent = isOpen ? "접기" : "미확정 보기";
+  btn.textContent = isOpen ? "접기" : "참고로 보기";
   btn.onclick = () => {
     if (isOpen) {
       state.expandedUnconfirmed = state.expandedUnconfirmed.filter((s) => s !== sector);
@@ -1465,7 +1465,7 @@ const buildCollapsedGroup = (sector, items, title) => {
   head.appendChild(btn);
 
   const list = document.createElement("div");
-  list.className = "collapsed-list list";
+  list.className = "collapsed-list list compact";
   items.forEach((item) => list.appendChild(buildCard(item)));
 
   wrapper.appendChild(head);
@@ -1658,7 +1658,7 @@ const render = () => {
     publicList.appendChild(renderShowMoreBtn("public", sortedTypes.length > 3 ? 6 : 0, isExpanded)); // Fake count to trigger btn
 
     if (bookablePublic.length) {
-      publicList.appendChild(buildCollapsedGroup("public-bookable", bookablePublic, "현재 예약 가능(공공)"));
+      publicList.appendChild(buildCollapsedGroup("public-bookable", bookablePublic, "현재 예약 가능(참고)"));
     }
     if (unconfirmedPublic.length) {
       publicList.appendChild(buildCollapsedGroup("public", unconfirmedPublic, "오픈일 미확정(공공)"));
@@ -1685,7 +1685,7 @@ const render = () => {
 
     list.appendChild(renderShowMoreBtn(sector, confirmed.length, isExpanded));
     if (bookable.length) {
-      list.appendChild(buildCollapsedGroup(`${sector}-bookable`, bookable, "현재 예약 가능"));
+      list.appendChild(buildCollapsedGroup(`${sector}-bookable`, bookable, "현재 예약 가능(참고)"));
     }
     if (unconfirmed.length) {
       list.appendChild(buildCollapsedGroup(sector, unconfirmed, "오픈일 미확정"));

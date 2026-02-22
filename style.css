@@ -842,6 +842,31 @@ main {
   display: grid;
 }
 
+.collapsed-group .ghost {
+  border-color: rgba(15, 28, 43, 0.15);
+  color: var(--muted);
+}
+
+.collapsed-list.compact .card {
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: none;
+  background: #fbfcfe;
+}
+
+.collapsed-list.compact .card-title {
+  font-size: 1rem;
+}
+
+.collapsed-list.compact .card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.collapsed-list.compact .card-actions {
+  gap: 8px;
+}
+
 .about-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
