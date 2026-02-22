@@ -410,6 +410,24 @@ main {
   color: var(--muted);
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: rgba(31, 111, 235, 0.08);
+  border: 1px solid rgba(31, 111, 235, 0.2);
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+
+.toggle input {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+
 .field input,
 .field select {
   border: 1px solid var(--stroke);

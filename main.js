@@ -246,7 +246,7 @@ const facilities = [
     name: "스위트파크 롯데 어린이 식품체험관",
     type: "체험관",
     region: "서울 강서",
-    openRule: "매월 첫째 수요일 11시 익월 예약 오픈(휴관/공휴일 시 둘째 수요일)",
+    openRule: "매월 첫째 수요일 11시 익월 예약 오픈(휴관 시 둘째 수요일)",
     openDate: "",
     availableStart: "상시",
     availableEnd: "상시",
@@ -442,8 +442,8 @@ const facilities = [
     name: "서울우유 양주공장",
     type: "공장 견학",
     region: "경기 양주",
-    openDate: "2026-03-03",
-    openTime: "10:00",
+    openRule: "2026 1분기 개인 예약 2025-12-02 10:00, 단체 예약 2025-12-04 10:00 오픈",
+    openDate: "",
     availableStart: "2026-03-03",
     availableEnd: "2026-03-03",
     reservationUrl: "https://tour.seoulmilk.co.kr/tour/visit_01.php?int_place=1",
@@ -475,7 +475,7 @@ const facilities = [
     name: "서울생활사박물관 어린이체험실",
     type: "박물관",
     region: "서울 노원",
-    openRule: "예약 페이지 확인",
+    openRule: "관람일 28일 전 09:00 예약 오픈",
     openDate: "",
     availableStart: "정보 확인",
     availableEnd: "정보 확인",
@@ -992,7 +992,7 @@ const facilities = [
     name: "서울백제어린이박물관",
     type: "박물관",
     region: "서울 송파",
-    openRule: "서울시 공공서비스예약",
+    openRule: "주말/공휴일은 서울시 공공서비스예약 사전예약 필수",
     openDate: "",
     availableStart: "정보 확인",
     availableEnd: "정보 확인",
@@ -1043,6 +1043,7 @@ const state = {
   date: "",
   sort: "open",
   regionFilter: "전체",
+  openOnly: true,
   expandedSectors: [],
 };
 
@@ -1064,6 +1065,7 @@ const emptyMap = {
 };
 
 const totalCountEl = document.getElementById("totalCount");
+const openCountEl = document.getElementById("openCount");
 const todayLabelEl = document.getElementById("todayLabel");
 const spotlightListEl = document.getElementById("spotlightList");
 const spotlightEmptyEl = document.getElementById("spotlightEmpty");
@@ -1141,6 +1143,24 @@ const formatOpenInfo = (item) => {
   let info = formatDate(item.openDate);
   if (item.openTime) info += ` ${item.openTime}`;
   return info;
+};
+
+const hasOpenSchedule = (item) => {
+  if (isDateString(item.openDate)) return true;
+  const rule = (item.openRule || "").trim();
+  if (!rule) return false;
+  const excluded = [
+    "예약 페이지 확인",
+    "공식 공지 확인 필요",
+    "네이버 예약",
+    "상시 예약",
+    "전화 문의",
+    "상담/예약",
+    "지도/예약 확인",
+    "정보 확인",
+  ];
+  if (excluded.includes(rule)) return false;
+  return true;
 };
 
 const getRegionGroup = (region = "") => {
@@ -1435,6 +1455,7 @@ const render = () => {
     .filter((item) => item.name.includes(state.search))
     .filter((item) => matchesDateFilter(item))
     .filter((item) => state.regionFilter === "전체" || getRegionGroup(item.region) === state.regionFilter)
+    .filter((item) => !state.openOnly || hasOpenSchedule(item))
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
       if (state.sort === "start") return a.availableStart.localeCompare(b.availableStart, "ko");
@@ -1541,6 +1562,9 @@ const render = () => {
   }
 
   totalCountEl.textContent = facilities.length;
+  if (openCountEl) {
+    openCountEl.textContent = facilities.filter((item) => hasOpenSchedule(item)).length;
+  }
   updateSpotlight();
   updateThreeDayForecast();
 };
@@ -1579,6 +1603,14 @@ const init = () => {
     });
   }
 
+  const openOnlyEl = document.getElementById("openOnly");
+  if (openOnlyEl) {
+    openOnlyEl.addEventListener("change", (event) => {
+      state.openOnly = event.target.checked;
+      render();
+    });
+  }
+
   document.getElementById("dateInput").addEventListener("change", (event) => {
     state.date = event.target.value;
     render();
@@ -1594,11 +1626,13 @@ const init = () => {
     state.date = getLocalISODate();
     state.sort = "open";
     state.regionFilter = "전체";
+    state.openOnly = true;
     document.getElementById("searchInput").value = "";
     document.getElementById("dateInput").value = state.date;
     document.getElementById("sortSelect").value = "open";
     if (regionFilterEl) regionFilterEl.value = "전체";
     if (regionSelectEl) regionSelectEl.value = "전체";
+    if (openOnlyEl) openOnlyEl.checked = true;
     render();
   });
 
