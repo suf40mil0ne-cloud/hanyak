@@ -141,14 +141,14 @@ const facilities = [
   },
   {
     sector: "public",
-    name: "경찰박물관",
+    name: "국립경찰박물관",
     type: "박물관",
     region: "서울 종로",
-    openRule: "공식 공지 확인 필요",
+    openRule: "예약 페이지 확인",
     openDate: "",
     availableStart: "정보 확인",
     availableEnd: "정보 확인",
-    reservationUrl: "https://www.policemuseum.go.kr/",
+    reservationUrl: "https://www.policemuseum.go.kr/pm_reservation_new/tourguide.asp",
   },
   {
     sector: "public",
@@ -404,6 +404,611 @@ const facilities = [
     availableEnd: "2026-11-30",
     reservationUrl: "https://www.incheon.go.kr/res/RE030101",
   },
+  {
+    sector: "public",
+    name: "인천 수도국산달동네 박물관",
+    type: "박물관",
+    region: "인천 동구",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.icdonggu.go.kr/museum/guide/reserve.jsp",
+  },
+  {
+    sector: "private",
+    name: "동탄 네이처스케이프 플러스",
+    type: "체험관",
+    region: "경기 화성",
+    openRule: "네이버 예약",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://m.booking.naver.com/booking/5/bizes/1130044/items/7390793?theme=place&service-target=map-pc&lang=ko&area=bmp",
+  },
+  {
+    sector: "farm",
+    name: "토북팜",
+    type: "농장 체험",
+    region: "지역 확인",
+    openRule: "전화 문의",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "tel:010-9823-4647",
+  },
+  {
+    sector: "private",
+    name: "서울우유 양주공장",
+    type: "공장 견학",
+    region: "경기 양주",
+    openDate: "2026-03-03",
+    openTime: "10:00",
+    availableStart: "2026-03-03",
+    availableEnd: "2026-03-03",
+    reservationUrl: "https://tour.seoulmilk.co.kr/tour/visit_01.php?int_place=1",
+  },
+  {
+    sector: "public",
+    name: "대한민국 국회 어린이박물관",
+    type: "박물관",
+    region: "서울 영등포",
+    openRule: "온라인 예약",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://reservation.assembly.go.kr/reserve/contents/booking/contentsView.do?sn=K20222348999404&menuNo=2200023",
+  },
+  {
+    sector: "private",
+    name: "한국야구르트 평택공장",
+    type: "공장 견학",
+    region: "경기 평택",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://hyfactory.fredit.co.kr/apply/applySelect?v=12052024",
+  },
+  {
+    sector: "public",
+    name: "서울생활사박물관 어린이체험실",
+    type: "박물관",
+    region: "서울 노원",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://museum.seoul.go.kr/sulm/information/viewGuide/bfeResveGuide.jsp",
+  },
+  {
+    sector: "public",
+    name: "송파책박물관",
+    type: "박물관",
+    region: "서울 송파",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.bookmuseum.go.kr/watch/watch_inscr_step01.do",
+  },
+  {
+    sector: "private",
+    name: "키즈마린파크",
+    type: "체험관",
+    region: "부산",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://kidsmarinepark.or.kr/education/education2.php",
+  },
+  {
+    sector: "private",
+    name: "동구랑스틸랜드",
+    type: "체험관",
+    region: "지역 확인",
+    openRule: "전화 문의",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "tel:0507-1429-2435",
+  },
+  {
+    sector: "public",
+    name: "서울형키즈카페",
+    type: "키즈카페",
+    region: "서울",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://umppa.seoul.go.kr/icare/user/kidsCafe/BD_selectKidsCafeList.do",
+  },
+  {
+    sector: "private",
+    name: "플래시백 계림",
+    type: "전시/체험",
+    region: "광주",
+    openRule: "예매 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.ticketlink.co.kr/product/61311",
+  },
+  {
+    sector: "private",
+    name: "가평 베고니아 새정원",
+    type: "정원/식물원",
+    region: "경기 가평",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://code.lscompany-coupon.com/?lscompanyResellerProductCode=PR26010911",
+  },
+  {
+    sector: "private",
+    name: "영화공장",
+    type: "체험/클래스",
+    region: "서울",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://m.booking.naver.com/booking/12/bizes/640477?theme=place&service-target=map-pc&lang=ko&area=bmp",
+  },
+  {
+    sector: "private",
+    name: "현대어린이책미술관",
+    type: "미술관",
+    region: "경기 하남",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.hmoka.org/visit/information/main.do?st_cd=480",
+  },
+  {
+    sector: "farm",
+    name: "포천 아딸농원",
+    type: "농장 체험",
+    region: "경기 포천",
+    openRule: "스마트스토어 문의",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://smartstore.naver.com/thechakhanfilter",
+  },
+  {
+    sector: "public",
+    name: "경기북부어린이박물관",
+    type: "박물관",
+    region: "경기 동두천",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://ngcm.ggcf.kr/pages/ticketing",
+  },
+  {
+    sector: "public",
+    name: "서울상상나라",
+    type: "박물관",
+    region: "서울 광진",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.seoulchildrensmuseum.org/reservation/individualregistration.do",
+  },
+  {
+    sector: "private",
+    name: "루덴시아 테마파크",
+    type: "테마파크",
+    region: "경기 가평",
+    openRule: "지도/예약 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://map.naver.com/p/search/%EB%A3%A8%EB%8D%B4%EC%8B%9C%EC%95%84/place/1266097670?c=15.00,0,0,0,dh&placePath=/home",
+  },
+  {
+    sector: "private",
+    name: "라이크노아더키즈",
+    type: "키즈카페",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "http://pcmap.place.naver.com/place/2009162765/booking?from=map&fromPanelNum=2&timestamp=202602230117&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "private",
+    name: "라운드트립 모래놀이터 카페",
+    type: "카페/체험",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/restaurant/1769950058/booking?from=map&fromPanelNum=2&timestamp=202602230118&locale=ko&svcName=map_pcv5&entry=bmp",
+  },
+  {
+    sector: "public",
+    name: "도르르놀이터",
+    type: "놀이터",
+    region: "지역 확인",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://nuture.nyjscc.kr/playground/playgroundList.do?playgroundUuid=20220211110654811800&reservationUserType=COM_MEMBER_TYPE_01&menuUuid=20211207231100050502",
+  },
+  {
+    sector: "public",
+    name: "문경 에코월드",
+    type: "테마파크",
+    region: "경북 문경",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/11783969/ticket?from=map&fromPanelNum=2&timestamp=202602230119&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "public",
+    name: "아리수나라",
+    type: "체험관",
+    region: "서울 광진",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://arisu.seoul.go.kr/home/sub?menukey=7534",
+  },
+  {
+    sector: "farm",
+    name: "쇠꼴마을",
+    type: "농촌 체험",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/13418387/ticket?from=map&fromPanelNum=2&timestamp=202602230120&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "farm",
+    name: "은진농장",
+    type: "농장 체험",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/1430820935/ticket?from=map&fromPanelNum=2&timestamp=202602230120&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "farm",
+    name: "생태농장 초록향기",
+    type: "농장 체험",
+    region: "경기",
+    openRule: "상담/예약",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "http://www.eco-greenfarm.com/g5/booking/consult_form.php",
+  },
+  {
+    sector: "farm",
+    name: "연보람녹장",
+    type: "농장 체험",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/20018347/ticket?from=map&fromPanelNum=2&timestamp=202602230121&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "farm",
+    name: "벼꽃농부",
+    type: "농장 체험",
+    region: "경기",
+    openRule: "전화 문의",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "tel:070-4441-7085",
+  },
+  {
+    sector: "farm",
+    name: "볏짚놀이터",
+    type: "농장 체험",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/1285720119/ticket?from=map&fromPanelNum=2&timestamp=202602230125&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "public",
+    name: "오산미니어처빌리지",
+    type: "체험관",
+    region: "경기 오산",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.osanmv.com/html/sub/03_03.asp",
+  },
+  {
+    sector: "water",
+    name: "동탄패밀리풀",
+    type: "물놀이터",
+    region: "경기 화성",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "여름",
+    availableEnd: "여름",
+    reservationUrl: "https://www.hsuco.or.kr/www/M040000/M040500/M0405002/M0405008.jsp",
+  },
+  {
+    sector: "private",
+    name: "그린티플",
+    type: "체험관",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/1783116714/ticket?from=map&fromPanelNum=2&timestamp=202602230126&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "public",
+    name: "어린이순환자원홍보관",
+    type: "체험관",
+    region: "지역 확인",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://reworld.kora.or.kr/guide/individual/index.php",
+  },
+  {
+    sector: "public",
+    name: "의령곤충생태학습관",
+    type: "체험관",
+    region: "경남 의령",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/37438585/ticket?from=map&fromPanelNum=2&timestamp=202602230127&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "private",
+    name: "뮤지엄헤이",
+    type: "미술관",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/1179348912/ticket?from=map&fromPanelNum=2&timestamp=202602230128&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "public",
+    name: "태안군가족공감센터 어린이놀이터",
+    type: "놀이터",
+    region: "충남 태안",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.taeanfamily.kr:449/reservation/playground.html",
+  },
+  {
+    sector: "public",
+    name: "태안군가족공감센터 어린이과학관",
+    type: "과학관",
+    region: "충남 태안",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.taeanfamily.kr:449/reservation/science.html",
+  },
+  {
+    sector: "private",
+    name: "하우스플레이랩",
+    type: "체험관",
+    region: "경기",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/restaurant/1916388380/booking?from=map&fromPanelNum=2&timestamp=202602230129&locale=ko&svcName=map_pcv5&entry=bmp",
+  },
+  {
+    sector: "private",
+    name: "디스커버스 의왕",
+    type: "체험관",
+    region: "경기 의왕",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/1838180116/ticket?from=map&fromPanelNum=2&timestamp=202602230129&locale=ko&svcName=map_pcv5",
+  },
+  {
+    sector: "private",
+    name: "화담숲",
+    type: "정원",
+    region: "경기 광주",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://content.yanolja.com/event/216?source_caller=ui&shortlink=y8lon1i4&c=mkt_hwadam_fall&pid=NOL_hwadam_fall&deep_link_value=nol-app%3A%2F%2Fwv%3Furl%3Dhttps%253A%252F%252Fcontent.yanolja.com%252Fevent%252F216&af_click_lookback=1d&af_xp=custom&af_force_deeplink=true",
+  },
+  {
+    sector: "public",
+    name: "인천어린이과학관",
+    type: "과학관",
+    region: "인천",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://reserve.insiseol.or.kr/childsee/childSeeScheduleMonth.do?see_seq=1",
+  },
+  {
+    sector: "public",
+    name: "국립민속박물관 어린이박물관",
+    type: "박물관",
+    region: "서울 종로",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.nfm.go.kr/kids/nfmkid/exhibition/selectReserveView.do",
+  },
+  {
+    sector: "public",
+    name: "서울공예박물관 어린이박물관",
+    type: "박물관",
+    region: "서울 종로",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://craftmuseum.seoul.go.kr/chimsm/exhibit/plan/list/1",
+  },
+  {
+    sector: "public",
+    name: "전쟁기념관 어린이박물관",
+    type: "박물관",
+    region: "서울 용산",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.warmemo.or.kr:8443/Kids/K20000/K20200/html",
+  },
+  {
+    sector: "private",
+    name: "크라운해태 키즈뮤지엄",
+    type: "박물관",
+    region: "서울",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://pcmap.place.naver.com/place/32971793/booking?bk_query=%EC%96%B4%EB%A6%B0%EC%9D%B4&entry=bmp&from=map&fromPanelNum=2&timestamp=202602230136&locale=ko&svcName=map_pcv5&searchText=%EC%96%B4%EB%A6%B0%EC%9D%B4",
+  },
+  {
+    sector: "public",
+    name: "인천중부소방서 길터주기 동승체험",
+    type: "체험관",
+    region: "인천 중구",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.incheon.go.kr/res/RE030101/lnbnsExprnView?resveGroupSn=102&resveProgrmSeCode=E&progrmSn=1662&curPage=1",
+  },
+  {
+    sector: "public",
+    name: "인천남동소방서 길터주기 동승체험",
+    type: "체험관",
+    region: "인천 남동",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.incheon.go.kr/res/RE030101/lnbnsExprnView?resveGroupSn=103&resveProgrmSeCode=E&progrmSn=1659&curPage=1",
+  },
+  {
+    sector: "public",
+    name: "인천영종소방서 길터주기 동승체험",
+    type: "체험관",
+    region: "인천 중구",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.incheon.go.kr/res/RE030101/lnbnsExprnView?resveGroupSn=183&resveProgrmSeCode=E&progrmSn=1661&curPage=1",
+  },
+  {
+    sector: "public",
+    name: "인천미추홀소방서 길터주기 동승체험",
+    type: "체험관",
+    region: "인천 미추홀",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.incheon.go.kr/res/RE030101/lnbnsExprnView?resveGroupSn=108&resveProgrmSeCode=E&progrmSn=1667&curPage=1",
+  },
+  {
+    sector: "farm",
+    name: "용인농도원목장",
+    type: "목장 체험",
+    region: "경기 용인",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.nongdo.co.kr/menu4/menu4_sub1_1.php",
+  },
+  {
+    sector: "public",
+    name: "국립중앙박물관 어린이박물관",
+    type: "박물관",
+    region: "서울 용산",
+    openRule: "예약 페이지 확인",
+    openDate: "",
+    availableStart: "정보 확인",
+    availableEnd: "정보 확인",
+    reservationUrl: "https://www.museum.go.kr/site/main/reserve/child/intro",
+  },
+  {
+    sector: "water",
+    name: "서울물재생체험관 어린이 물놀이터",
+    type: "물놀이터",
+    region: "서울 강서",
+    openRule: "여름 시즌(공공예약) 확인",
+    openDate: "",
+    availableStart: "여름",
+    availableEnd: "여름",
+    reservationUrl: "https://swr.or.kr/museum/cpage.do",
+  },
+  {
+    sector: "water",
+    name: "진양호공원 어린이물놀이터",
+    type: "물놀이터",
+    region: "경남 진주",
+    openRule: "진주시 통합예약 확인",
+    openDate: "",
+    availableStart: "여름",
+    availableEnd: "여름",
+    reservationUrl: "https://www.jinju.go.kr/board/view.jinju?boardId=BBS_0000214&menuCd=DOM_000000203012004000&dataSid=1598915",
+  },
+  {
+    sector: "water",
+    name: "물초울공원 물놀이터",
+    type: "물놀이터",
+    region: "경남 진주",
+    openRule: "진주시 통합예약 확인",
+    openDate: "",
+    availableStart: "여름",
+    availableEnd: "여름",
+    reservationUrl: "https://www.jinju.go.kr/board/view.jinju?boardId=BBS_0000214&menuCd=DOM_000000203012004000&dataSid=1598639",
+  },
 ];
 
 const getLocalISODate = (date = new Date()) => {
@@ -415,6 +1020,7 @@ const state = {
   search: "",
   date: "",
   sort: "open",
+  regionFilter: "전체",
   expandedSectors: [],
 };
 
@@ -422,6 +1028,7 @@ const listMap = {
   public: document.getElementById("publicList"),
   private: document.getElementById("privateList"),
   farm: document.getElementById("farmList"),
+  water: document.getElementById("waterList"),
   popup: document.getElementById("popupList"),
 };
 
@@ -429,7 +1036,9 @@ const emptyMap = {
   public: document.getElementById("publicEmpty"),
   private: document.getElementById("privateEmpty"),
   farm: document.getElementById("farmEmpty"),
+  water: document.getElementById("waterEmpty"),
   popup: document.getElementById("popupEmpty"),
+  region: document.getElementById("regionEmpty"),
 };
 
 const totalCountEl = document.getElementById("totalCount");
@@ -437,6 +1046,9 @@ const todayLabelEl = document.getElementById("todayLabel");
 const spotlightListEl = document.getElementById("spotlightList");
 const spotlightEmptyEl = document.getElementById("spotlightEmpty");
 const spotlightHintEl = document.getElementById("spotlightHint");
+const regionListEl = document.getElementById("regionList");
+const regionFilterEl = document.getElementById("regionFilter");
+const regionSelectEl = document.getElementById("regionSelect");
 
 const updateThreeDayForecast = () => {
   const base = new Date();
@@ -509,6 +1121,40 @@ const formatOpenInfo = (item) => {
   return info;
 };
 
+const getRegionGroup = (region = "") => {
+  if (!region || region.includes("정보") || region.includes("확인")) return "기타";
+  const token = region.split(" ")[0];
+  const normalized = token.replace(/특별시|광역시|특별자치시|특별자치도|자치도/g, "");
+  const known = [
+    "서울", "경기", "인천", "강원", "충북", "충남", "대전",
+    "세종", "광주", "전북", "전남", "대구", "부산", "울산",
+    "경북", "경남", "제주"
+  ];
+  if (known.includes(normalized)) return normalized;
+  return normalized || "기타";
+};
+
+const populateRegionFilters = () => {
+  const regions = Array.from(new Set(facilities.map((item) => getRegionGroup(item.region))));
+  const sorted = regions.filter(Boolean).sort((a, b) => a.localeCompare(b, "ko"));
+  const options = ["전체", ...sorted];
+
+  const buildOptions = (selectEl) => {
+    if (!selectEl) return;
+    selectEl.innerHTML = "";
+    options.forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value === "전체" ? "전체 지역" : value;
+      selectEl.appendChild(option);
+    });
+    selectEl.value = state.regionFilter;
+  };
+
+  buildOptions(regionFilterEl);
+  buildOptions(regionSelectEl);
+};
+
 const withinRange = (date, start, end, openDate) => {
   if (!date) return true;
   
@@ -531,6 +1177,17 @@ const withinRange = (date, start, end, openDate) => {
   const s = new Date(start + "T00:00:00");
   const e = new Date(end + "T00:00:00");
   return d >= s && d <= e;
+};
+
+const matchesDateFilter = (item) => {
+  if (!state.date) return true;
+  if (withinRange(state.date, item.availableStart, item.availableEnd, item.openDate)) {
+    return true;
+  }
+  if (!isDateString(item.availableStart) || !isDateString(item.availableEnd)) {
+    return true;
+  }
+  return false;
 };
 
 const getStatus = (item, selectedDate) => {
@@ -671,6 +1328,39 @@ const buildSpotlightCard = (item, focusDate) => {
   return card;
 };
 
+const buildRegionCard = (region, items) => {
+  const card = document.createElement("div");
+  card.className = "region-card";
+
+  const header = document.createElement("h3");
+  header.innerHTML = `${region}<span>${items.length}곳</span>`;
+  card.appendChild(header);
+
+  const list = document.createElement("div");
+  list.className = "region-list";
+
+  items.slice(0, 5).forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "region-item";
+    const disabled = item.reservationUrl === "#" || !item.reservationUrl;
+    const nameEl = document.createElement(disabled ? "div" : "a");
+    nameEl.textContent = item.name;
+    if (!disabled) {
+      nameEl.href = item.reservationUrl;
+      nameEl.target = "_blank";
+      nameEl.rel = "noopener";
+    }
+    const meta = document.createElement("span");
+    meta.textContent = item.type;
+    row.appendChild(nameEl);
+    row.appendChild(meta);
+    list.appendChild(row);
+  });
+
+  card.appendChild(list);
+  return card;
+};
+
 const renderShowMoreBtn = (sector, count, isExpanded) => {
   const container = document.createElement("div");
   container.className = "show-more-container";
@@ -721,7 +1411,8 @@ const updateSpotlight = () => {
 const render = () => {
   const filtered = facilities
     .filter((item) => item.name.includes(state.search))
-    .filter((item) => withinRange(state.date, item.availableStart, item.availableEnd, item.openDate))
+    .filter((item) => matchesDateFilter(item))
+    .filter((item) => state.regionFilter === "전체" || getRegionGroup(item.region) === state.regionFilter)
     .sort((a, b) => {
       if (state.sort === "name") return a.name.localeCompare(b.name, "ko");
       if (state.sort === "start") return a.availableStart.localeCompare(b.availableStart, "ko");
@@ -790,7 +1481,7 @@ const render = () => {
     emptyMap.public.style.display = "block";
   }
 
-  ["private", "farm", "popup"].forEach((sector) => {
+  ["private", "farm", "water", "popup"].forEach((sector) => {
     const list = listMap[sector];
     const items = grouped[sector] || [];
     list.innerHTML = "";
@@ -805,6 +1496,27 @@ const render = () => {
     list.appendChild(renderShowMoreBtn(sector, items.length, isExpanded));
     emptyMap[sector].style.display = items.length ? "none" : "block";
   });
+
+  if (regionListEl) {
+    const regionGroups = filtered.reduce((acc, item) => {
+      const key = getRegionGroup(item.region);
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    regionListEl.innerHTML = "";
+    const regionKeys = Object.keys(regionGroups).sort((a, b) => a.localeCompare(b, "ko"));
+    if (regionKeys.length) {
+      regionKeys.forEach((region) => {
+        const items = regionGroups[region].sort((a, b) => a.name.localeCompare(b.name, "ko"));
+        regionListEl.appendChild(buildRegionCard(region, items));
+      });
+      emptyMap.region.style.display = "none";
+    } else {
+      emptyMap.region.style.display = "block";
+    }
+  }
 
   totalCountEl.textContent = facilities.length;
   updateSpotlight();
@@ -826,6 +1538,25 @@ const init = () => {
     render();
   });
 
+  const handleRegionChange = (value) => {
+    state.regionFilter = value;
+    if (regionFilterEl) regionFilterEl.value = value;
+    if (regionSelectEl) regionSelectEl.value = value;
+    render();
+  };
+
+  if (regionFilterEl) {
+    regionFilterEl.addEventListener("change", (event) => {
+      handleRegionChange(event.target.value);
+    });
+  }
+
+  if (regionSelectEl) {
+    regionSelectEl.addEventListener("change", (event) => {
+      handleRegionChange(event.target.value);
+    });
+  }
+
   document.getElementById("dateInput").addEventListener("change", (event) => {
     state.date = event.target.value;
     render();
@@ -840,9 +1571,12 @@ const init = () => {
     state.search = "";
     state.date = getLocalISODate();
     state.sort = "open";
+    state.regionFilter = "전체";
     document.getElementById("searchInput").value = "";
     document.getElementById("dateInput").value = state.date;
     document.getElementById("sortSelect").value = "open";
+    if (regionFilterEl) regionFilterEl.value = "전체";
+    if (regionSelectEl) regionSelectEl.value = "전체";
     render();
   });
 
@@ -872,4 +1606,5 @@ const init = () => {
   updateThreeDayForecast();
 };
 
+populateRegionFilters();
 init();
