@@ -20,9 +20,17 @@
     previews = {
       enable = true;
       previews = {
+        # 백엔드 API 서버 (포트 3001)
+        server = {
+          command = ["node" "server/index.js"];
+          manager = "process";
+          env = { PORT = "3001"; };
+        };
+        # 프론트엔드 Vite 개발 서버 (포트 5173)
         web = {
-          command = ["python3" "-m" "http.server" "$PORT" "--bind" "0.0.0.0"];
+          command = ["npm" "run" "dev" "--prefix" "client"];
           manager = "web";
+          env = { PORT = "$PORT"; };
         };
       };
     };
@@ -30,15 +38,12 @@
     workspace = {
       # Runs when a workspace is first created
       onCreate = {
-        # Example: install JS dependencies from NPM
-        # npm-install = "npm install";
-        # Open editors for the following files by default, if they exist:
-        default.openFiles = [ "style.css" "main.js" "index.html" ];
+        install-deps = "npm run install:all";
+        default.openFiles = [ "client/src/App.tsx" "README.md" ];
       };
       # Runs when the workspace is (re)started
       onStart = {
-        # Example: start a background task to watch and re-build backend code
-        # watch-backend = "npm run watch-backend";
+        start-server = "node server/index.js &";
       };
     };
   };
