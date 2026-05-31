@@ -304,3 +304,19 @@ export function getSigunguList(sido: string): string[] {
 export function getLawdCd(sido: string, sigungu: string): string | null {
   return LAWD_CODES[sido]?.[sigungu] ?? null;
 }
+
+/** lawdCd → "시군구" 역조회 테이블 (진행률 표시용) */
+const REGION_NAME_BY_CODE: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const sido of Object.keys(LAWD_CODES)) {
+    for (const [sigungu, code] of Object.entries(LAWD_CODES[sido])) {
+      map[code] = sigungu;
+    }
+  }
+  return map;
+})();
+
+/** lawdCd로 시군구 이름 반환 (없으면 코드 그대로) */
+export function getRegionName(lawdCd: string): string {
+  return REGION_NAME_BY_CODE[lawdCd] ?? lawdCd;
+}

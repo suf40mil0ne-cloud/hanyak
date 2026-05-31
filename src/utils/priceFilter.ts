@@ -73,7 +73,7 @@ export function filterAndCalcMonthly(
 
     const ar = parseFloat(String(r.excluUseAr));
     if (isNaN(ar)) return false;
-    if (Math.abs(ar - area) > 3) return false;
+    if (Math.abs(ar - area) > 5) return false; // 선택 면적 ±5㎡
 
     if (parseInt(r.dealYear, 10) !== year) return false;
     if (parseInt(r.dealMonth, 10) !== month) return false;
@@ -143,9 +143,13 @@ export function calcYearlyStats(
   years: number[],
   aptName: string | AptMatcher,
   area: number,
-  options: FilterOptions
+  options: FilterOptions,
+  debugLabel?: string
 ): { [year: number]: YearlyStats } {
   const result: { [year: number]: YearlyStats } = {};
+  const matchFn: AptMatcher = typeof aptName === 'function' ? aptName : exactMatcher(aptName);
+  let rawTotal = 0; // 명칭+면적 1차 매칭 건수
+  let finalTotal = 0; // 이상거래/IQR 필터 후 건수
 
   for (const year of years) {
     const monthStats: { [month: number]: MonthlyStats } = {};
@@ -157,9 +161,19 @@ export function calcYearlyStats(
       const records = dataMap.get(key);
       if (!records || records.length === 0) continue;
 
-      const stats = filterAndCalcMonthly(records, aptName, area, year, month, options);
+      // 디버그: 명칭+면적(±5㎡) 1차 매칭 건수 집계
+      if (debugLabel) {
+        rawTotal += records.filter((r) => {
+          if (!r.aptNm || !matchFn(r.aptNm)) return false;
+          const ar = parseFloat(String(r.excluUseAr));
+          return !isNaN(ar) && Math.abs(ar - area) <= 5;
+        }).length;
+      }
+
+      const stats = filterAndCalcMonthly(records, matchFn, area, year, month, options);
       if (stats) {
         monthStats[month] = stats;
+        finalTotal += stats.count;
       }
     }
 
@@ -173,6 +187,13 @@ export function calcYearlyStats(
 
       result[year] = { year, avgPrice, count: totalCount, monthly: monthStats };
     }
+  }
+
+  if (debugLabel) {
+    const range = options.monthFilter !== null ? `${options.monthFilter}월` : '연평균';
+    console.log(
+      `[면적필터] ${debugLabel} 전용 ${area}±5㎡ (${range}) | 명칭+면적 매칭 ${rawTotal}건 → 이상거래/IQR 필터 후 ${finalTotal}건`
+    );
   }
 
   return result;

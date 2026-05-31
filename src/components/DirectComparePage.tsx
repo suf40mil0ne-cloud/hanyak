@@ -85,7 +85,8 @@ const DirectComparePage: React.FC = () => {
           years,
           exactMatcher(apt.name),
           apt.area,
-          filterOptions
+          filterOptions,
+          `${apt.name} ${apt.areaLabel}` // 콘솔 면적 필터 로그
         );
         const prev = results.find((r) => r.info.id === apt.id);
         return { info: apt, yearlyStats, manualPrice: prev?.manualPrice };

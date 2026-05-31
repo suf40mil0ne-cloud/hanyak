@@ -47,25 +47,46 @@ const ResultTable: React.FC<Props> = ({ results, baseId, onManualPriceChange }) 
       <div className="overflow-x-auto">
         <table className="text-sm w-full border-collapse min-w-max">
           <thead>
-            <tr className="bg-gray-100 text-gray-600">
-              <th className="text-left px-3 py-2 font-medium border border-gray-200 sticky left-0 bg-gray-100 z-10 whitespace-nowrap">
+            {/* 1단: 연도 (시세+지수를 colSpan으로 묶음) */}
+            <tr className="bg-gray-100 text-gray-700">
+              <th
+                rowSpan={2}
+                className="text-left px-3 py-2 font-semibold border border-gray-200 sticky left-0 bg-gray-100 z-10 whitespace-nowrap align-bottom"
+              >
                 아파트
               </th>
               {years.map((y) => {
-                const curYear = new Date().getFullYear();
-                const isCurrentYear = y === curYear;
+                const isCurrentYear = y === new Date().getFullYear();
+                return (
+                  <th
+                    key={y}
+                    colSpan={isMultiple ? 2 : 1}
+                    className="px-3 py-2 font-semibold border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap"
+                  >
+                    {y}년{isCurrentYear ? ' (입력)' : ''}
+                  </th>
+                );
+              })}
+            </tr>
+            {/* 2단: 시세 / 지수 서브헤더 */}
+            <tr className="bg-gray-50 text-gray-500 text-xs">
+              {years.map((y) => {
+                const isCurrentYear = y === new Date().getFullYear();
                 return isMultiple ? (
                   <React.Fragment key={y}>
-                    <th className="px-3 py-2 font-medium border border-gray-200 text-center whitespace-nowrap">
-                      {y}년 {isCurrentYear ? '시세(억)' : '시세(억)'}
+                    <th className="px-3 py-1.5 font-medium border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap">
+                      시세(억)
                     </th>
-                    <th className="px-3 py-2 font-medium border border-gray-200 text-center whitespace-nowrap bg-blue-50 text-blue-700">
-                      {y}년 지수
+                    <th className="px-3 py-1.5 font-medium border border-gray-200 text-center whitespace-nowrap bg-blue-50 text-blue-700">
+                      지수
                     </th>
                   </React.Fragment>
                 ) : (
-                  <th key={y} className="px-3 py-2 font-medium border border-gray-200 text-center whitespace-nowrap">
-                    {y}년 {isCurrentYear ? '입력시세(억)' : '시세(억)'}
+                  <th
+                    key={y}
+                    className="px-3 py-1.5 font-medium border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap"
+                  >
+                    {isCurrentYear ? '입력(억)' : '시세(억)'}
                   </th>
                 );
               })}
@@ -102,7 +123,7 @@ const ResultTable: React.FC<Props> = ({ results, baseId, onManualPriceChange }) 
                     return isMultiple ? (
                       <React.Fragment key={y}>
                         {/* 시세 셀 */}
-                        <td className="px-3 py-2 border border-gray-200 text-center align-middle">
+                        <td className="px-3 py-2 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle">
                           {isCurrentYear ? (
                             <div className="flex flex-col items-center gap-1">
                               {apiPrice != null && (
@@ -153,7 +174,7 @@ const ResultTable: React.FC<Props> = ({ results, baseId, onManualPriceChange }) 
                       </React.Fragment>
                     ) : (
                       /* 단일 아파트: 시세만 */
-                      <td key={y} className="px-3 py-2 border border-gray-200 text-center align-middle">
+                      <td key={y} className="px-3 py-2 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle">
                         {isCurrentYear ? (
                           <div className="flex flex-col items-center gap-1">
                             {apiPrice != null && (

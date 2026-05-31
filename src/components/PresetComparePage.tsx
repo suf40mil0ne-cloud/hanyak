@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PRESET_APARTMENTS, PRESET_CATEGORIES, PresetApt } from '../data/presetApartments';
 import { ApartmentData, ApartmentInfo, FilterOptions } from '../types';
-import { loadAllData, getQueryYears, getCacheKey, buildYearMonthList, globalCache } from '../utils/apiClient';
+import { loadManyRegions, getQueryYears, getCacheKey, buildYearMonthList, globalCache } from '../utils/apiClient';
 import { calcYearlyStats, prefixMatcher } from '../utils/priceFilter';
+import { getRegionName } from '../data/lawdCodes';
 import PriceChart from './PriceChart';
 
 // 프리셋은 이상 거래를 항상 자동 제외 (국평 기준 대표 시세)
@@ -20,9 +21,23 @@ function presetId(p: PresetApt): string {
   return `${p.lawdCd}_${p.aptNm}_${p.areaTarget}_${p.label}`;
 }
 
+/** 지수 셀 텍스트 */
+function idxText(idx: number | null): string {
+  return idx == null ? '-' : String(idx);
+}
+
+/** 지수 셀 스타일: 100=진한 파랑 배경, >100=빨강, <100=초록 */
+function idxClass(idx: number | null): string {
+  if (idx == null) return 'text-gray-300';
+  if (idx === 100) return 'bg-blue-600 text-white font-bold';
+  if (idx > 100) return 'text-red-600 font-semibold';
+  return 'text-green-700 font-semibold';
+}
+
 const PresetComparePage: React.FC = () => {
   const years = getQueryYears();
   const curYear = years[years.length - 1];
+  const totalCols = 2 + years.length * 2; // 아파트 + 비고 + (연도별 시세/지수)
 
   const [monthFilter, setMonthFilter] = useState<number | null>(null);
   const [baseId, setBaseId] = useState<string>(''); // '' = 기준 없음
@@ -44,7 +59,8 @@ const PresetComparePage: React.FC = () => {
         years,
         prefixMatcher(p.aptNm),
         p.areaTarget,
-        { ...PRESET_FILTER, monthFilter: mf }
+        { ...PRESET_FILTER, monthFilter: mf },
+        p.label // 콘솔에 면적 필터 전/후 건수 로그
       );
       const id = presetId(p);
       const info: ApartmentInfo = {
@@ -71,14 +87,21 @@ const PresetComparePage: React.FC = () => {
           for (const ym of ymList) globalCache.delete(getCacheKey(lawdCd, ym.dealYmd));
         }
       }
-      let done = 0;
       const total = uniqueLawdCds.length;
-      for (const lawdCd of uniqueLawdCds) {
-        setProgress({ current: done, total, label: `지역 데이터 조회 중 (${done}/${total})` });
-        await loadAllData(lawdCd, years, globalCache, () => {});
-        done++;
-        setProgress({ current: done, total, label: `지역 데이터 조회 중 (${done}/${total})` });
-      }
+      setProgress({ current: 0, total, label: `데이터 로딩 중... (0/${total} 지역)` });
+      await loadManyRegions(
+        uniqueLawdCds,
+        years,
+        globalCache,
+        (done, totalRegions, lastLawdCd) => {
+          const where = lastLawdCd ? `${getRegionName(lastLawdCd)} ` : '';
+          setProgress({
+            current: done,
+            total: totalRegions,
+            label: `${where}데이터 로딩 중... (${done}/${totalRegions} 지역)`,
+          });
+        }
+      );
       recompute(monthFilter);
       loadedRef.current = true;
     } finally {
@@ -163,55 +186,99 @@ const PresetComparePage: React.FC = () => {
       </div>
 
       {/* 카테고리별 테이블 */}
-      {!loading &&
-        results.length > 0 &&
-        PRESET_CATEGORIES.map((cat) => {
-          const rows = results.filter((r) => r.preset.category === cat);
-          if (rows.length === 0) return null;
-          return (
-            <div key={cat} className="card p-0 overflow-hidden">
-              <div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
-                <h3 className="text-sm font-bold text-gray-700">── {cat} ──</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="text-sm w-full border-collapse min-w-max">
-                  <thead>
-                    <tr className="bg-gray-50 text-gray-600">
-                      <th className="px-2 py-2 font-medium border-b border-gray-200 text-center w-10">기준</th>
-                      <th className="px-3 py-2 font-medium border-b border-gray-200 text-left whitespace-nowrap sticky left-0 bg-gray-50">
-                        아파트
-                      </th>
-                      <th className="px-3 py-2 font-medium border-b border-gray-200 text-left whitespace-nowrap">비고</th>
-                      {years.map((y) => (
-                        <th key={y} className="px-3 py-2 font-medium border-b border-gray-200 text-center whitespace-nowrap">
-                          {y}년{y === curYear ? ' (입력)' : ''}
-                        </th>
-                      ))}
+      {!loading && results.length > 0 && (
+        <div className="card p-0 overflow-x-auto">
+          <table
+            className="text-sm border-collapse"
+            style={{
+              tableLayout: 'fixed',
+              width: `${260 + years.reduce((s, y) => s + (y === curYear ? 120 : 90) + 60, 0)}px`,
+            }}
+          >
+            <colgroup>
+              <col style={{ width: '180px' }} />
+              <col style={{ width: '80px' }} />
+              {years.map((y) => (
+                <React.Fragment key={y}>
+                  <col style={{ width: y === curYear ? '120px' : '90px' }} />
+                  <col style={{ width: '60px' }} />
+                </React.Fragment>
+              ))}
+            </colgroup>
+
+            {/* 단일 2단 헤더 (전체 테이블 최상단 1회만) */}
+            <thead>
+              <tr className="bg-gray-100 text-gray-700">
+                <th
+                  rowSpan={2}
+                  className="px-3 py-2 text-left font-semibold border border-gray-200 sticky left-0 bg-gray-100 z-20 align-bottom"
+                >
+                  아파트
+                </th>
+                <th rowSpan={2} className="px-2 py-2 text-center font-semibold border border-gray-200 align-bottom">
+                  비고
+                </th>
+                {years.map((y) => (
+                  <th
+                    key={y}
+                    colSpan={2}
+                    className="px-2 py-2 text-center font-semibold border border-gray-200 border-l-2 border-l-gray-300 whitespace-nowrap"
+                  >
+                    {y}년{y === curYear ? ' (입력)' : ''}
+                  </th>
+                ))}
+              </tr>
+              <tr className="bg-gray-50 text-gray-500 text-xs">
+                {years.map((y) => (
+                  <React.Fragment key={y}>
+                    <th className="px-1 py-1.5 text-center font-medium border border-gray-200 border-l-2 border-l-gray-300">
+                      시세(억)
+                    </th>
+                    <th className="px-1 py-1.5 text-center font-medium border border-gray-200 bg-blue-50 text-blue-700">
+                      지수
+                    </th>
+                  </React.Fragment>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {PRESET_CATEGORIES.map((cat) => {
+                const rows = results.filter((r) => r.preset.category === cat);
+                if (rows.length === 0) return null;
+                return (
+                  <React.Fragment key={cat}>
+                    {/* 카테고리 구분 행 */}
+                    <tr>
+                      <td
+                        colSpan={totalCols}
+                        className="bg-gray-200 text-gray-700 font-bold text-xs px-3 py-1.5 border border-gray-200"
+                      >
+                        ── {cat} ──
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
+
                     {rows.map((r) => {
                       const isBase = r.info.id === baseId;
                       const rowBg = isBase ? 'bg-blue-50' : 'bg-white';
                       return (
                         <tr key={r.info.id} className={`${rowBg} hover:bg-yellow-50 transition-colors`}>
-                          <td className={`px-2 py-2 border-b border-gray-100 text-center ${rowBg}`}>
-                            <input
-                              type="radio"
-                              name="presetBase"
-                              checked={isBase}
-                              onChange={() => handleBase(r.info.id)}
-                              className="accent-blue-600 cursor-pointer"
-                              title="기준으로 설정/해제"
-                            />
+                          {/* 아파트 (기준 라디오 + ★ + 이름) */}
+                          <td className={`px-2 py-2 border border-gray-200 sticky left-0 z-10 ${rowBg}`}>
+                            <label className="flex items-center gap-1.5 cursor-pointer" title="기준 설정/해제">
+                              <input
+                                type="radio"
+                                name="presetBase"
+                                checked={isBase}
+                                onChange={() => handleBase(r.info.id)}
+                                className="accent-blue-600 shrink-0"
+                              />
+                              {isBase && <span className="text-blue-600 shrink-0 leading-none">★</span>}
+                              <span className="font-medium text-gray-800 text-xs truncate">{r.preset.label}</span>
+                            </label>
                           </td>
-                          <td className={`px-3 py-2 border-b border-gray-100 whitespace-nowrap sticky left-0 ${rowBg}`}>
-                            <span className="font-medium text-gray-800">
-                              {isBase && <span className="text-blue-600 mr-1">★</span>}
-                              {r.preset.label}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2 border-b border-gray-100 text-xs text-gray-400 whitespace-nowrap">
+                          {/* 비고 */}
+                          <td className="px-1 py-2 border border-gray-200 text-[10px] text-gray-400 text-center truncate">
                             {r.preset.note || '-'}
                           </td>
                           {years.map((y) => {
@@ -219,62 +286,64 @@ const PresetComparePage: React.FC = () => {
                             const price = effectivePrice(r, y);
                             const basePrice = baseResult ? effectivePrice(baseResult, y) : null;
                             const idx =
-                              baseId && basePrice && price ? Math.round((price / basePrice) * 100) : null;
+                              baseId && basePrice != null && price != null
+                                ? Math.round((price / basePrice) * 100)
+                                : null;
                             const isInput = y === curYear;
                             return (
-                              <td key={y} className="px-3 py-2 border-b border-gray-100 text-center align-middle">
-                                {isInput ? (
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    {ys?.avgPrice != null && (
-                                      <span className="text-[10px] text-gray-400">API {ys.avgPrice.toFixed(2)}</span>
-                                    )}
-                                    <input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      placeholder={ys?.avgPrice != null ? ys.avgPrice.toFixed(2) : '입력'}
-                                      value={r.manualPrice ?? ''}
-                                      onChange={(e) =>
-                                        handleManualPrice(
-                                          r.info.id,
-                                          e.target.value === '' ? undefined : parseFloat(e.target.value)
-                                        )
-                                      }
-                                      className="input-base w-16 text-center text-xs"
-                                    />
-                                    {idx != null && (
-                                      <span className={`text-[10px] font-semibold ${isBase ? 'text-blue-600' : idx >= 100 ? 'text-orange-600' : 'text-green-700'}`}>
-                                        {isBase ? 100 : idx}
-                                      </span>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div>
-                                    <div className={`font-medium ${price != null ? 'text-gray-800' : 'text-gray-300'}`}>
-                                      {price != null ? `${price.toFixed(2)}억` : '-'}
+                              <React.Fragment key={y}>
+                                {/* 시세 셀 */}
+                                <td className="px-1 py-2 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle">
+                                  {isInput ? (
+                                    <div className="flex flex-col items-center gap-0.5">
+                                      {ys?.avgPrice != null && (
+                                        <span className="text-[9px] text-gray-400">API {ys.avgPrice.toFixed(2)}</span>
+                                      )}
+                                      <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        placeholder={ys?.avgPrice != null ? ys.avgPrice.toFixed(2) : '입력'}
+                                        value={r.manualPrice ?? ''}
+                                        onChange={(e) =>
+                                          handleManualPrice(
+                                            r.info.id,
+                                            e.target.value === '' ? undefined : parseFloat(e.target.value)
+                                          )
+                                        }
+                                        className="input-base w-[90px] text-center text-xs"
+                                      />
                                     </div>
-                                    {ys && ys.count > 0 && (
-                                      <div className="text-[10px] text-gray-400">n={ys.count}</div>
-                                    )}
-                                    {idx != null && (
-                                      <div className={`text-[10px] font-semibold ${isBase ? 'text-blue-600' : idx >= 100 ? 'text-orange-600' : 'text-green-700'}`}>
-                                        지수 {isBase ? 100 : idx}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </td>
+                                  ) : (
+                                    <div className="flex flex-col items-center leading-tight">
+                                      <span className={`font-bold ${price != null ? 'text-gray-800' : 'text-gray-300'}`}>
+                                        {price != null ? `${price.toFixed(2)}억` : '-'}
+                                      </span>
+                                      {ys && ys.count > 0 && (
+                                        <span className="text-[10px] text-gray-400">실거래 {ys.count}</span>
+                                      )}
+                                    </div>
+                                  )}
+                                </td>
+                                {/* 지수 셀 */}
+                                <td
+                                  className={`px-1 py-2 border border-gray-200 text-center align-middle text-xs ${idxClass(idx)}`}
+                                >
+                                  {idxText(idx)}
+                                </td>
+                              </React.Fragment>
                             );
                           })}
                         </tr>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          );
-        })}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* 차트 */}
       {!loading && results.length > 0 && (
