@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ApartmentInfo, RawTradeRecord, SelectedRegion } from '../types';
-import { fetchRecentMonthsData } from '../utils/apiClient';
+import { fetchAreaScanData } from '../utils/apiClient';
 import { distinctAreas, makeAreaLabel } from '../utils/priceFilter';
 
 interface Props {
@@ -26,6 +26,7 @@ const ApartmentSearch: React.FC<Props> = ({
   const [areaOptions, setAreaOptions] = useState<number[]>([]);
   const [selectedArea, setSelectedArea] = useState<number | null>(null);
   const [searching, setSearching] = useState(false);
+  const [scanMsg, setScanMsg] = useState('');
   const [searchError, setSearchError] = useState('');
   const [rawRecords, setRawRecords] = useState<RawTradeRecord[]>([]);
 
@@ -36,6 +37,7 @@ const ApartmentSearch: React.FC<Props> = ({
     }
 
     setSearching(true);
+    setScanMsg('');
     setSearchError('');
     setAptList([]);
     setSelectedApt('');
@@ -43,7 +45,13 @@ const ApartmentSearch: React.FC<Props> = ({
     setSelectedArea(null);
 
     try {
-      const records = await fetchRecentMonthsData(region.lawdCd);
+      const records = await fetchAreaScanData(region.lawdCd, (p) => {
+        setScanMsg(
+          p.anyFetch
+            ? `평형 조회 중... (24개월 데이터 수집 ${p.done}/${p.total})`
+            : '평형 조회 중... (캐시 활용)'
+        );
+      });
       setRawRecords(records);
 
       if (records.length === 0) {
@@ -71,6 +79,7 @@ const ApartmentSearch: React.FC<Props> = ({
       setSearchError((e as Error).message || '조회 중 오류가 발생했습니다.');
     } finally {
       setSearching(false);
+      setScanMsg('');
     }
   };
 
@@ -146,6 +155,13 @@ const ApartmentSearch: React.FC<Props> = ({
         >
           {searching ? '조회 중...' : '아파트 조회'}
         </button>
+
+        {searching && scanMsg && (
+          <span className="text-xs text-gray-500 flex items-center gap-1.5 pb-1">
+            <span className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            {scanMsg}
+          </span>
+        )}
       </div>
 
       {searchError && (

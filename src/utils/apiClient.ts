@@ -136,33 +136,65 @@ export async function loadAllData(
   });
 }
 
+/** 평형 스캔 진행 상황 */
+export interface AreaScanProgress {
+  done: number; // 조회 완료한 월 수 (캐시 미적중분 기준)
+  total: number; // 조회해야 할 월 수 (캐시 미적중분)
+  anyFetch: boolean; // 네트워크 호출이 한 건이라도 필요한지 (false면 캐시 100% 적중)
+}
+
 /**
- * 특정 지역의 최근 데이터 조회 (아파트 목록·면적 검색용).
- * 최근 월부터 역순으로, 거래가 있는 월 monthsWithData개를 모아 합산해서 돌려준다.
- * - 당월은 실거래 등록 지연(통상 1~2개월)으로 비어 있을 수 있어, 데이터 있는 월만 카운트
- * - 여러 달을 합산하므로 거래가 드문 대형 평형도 면적 드롭다운에 잡힌다
- * - 안전상 최대 8개월까지만 역순 조회
+ * 특정 지역의 최근 N개월(기본 24) 데이터를 모아 합산 조회 (아파트 목록·면적 검색용).
+ * - 현재월부터 N개월 전까지 대상. globalCache에 이미 있는 달은 호출을 건너뛴다.
+ * - 캐시 미적중 월만 6개씩 배치 병렬 호출(WAF 차단 방지) + 배치 간 50ms 딜레이.
+ * - 탭 2(주요 아파트 시세)가 같은 지역을 이미 로딩했다면 캐시 100% 적중 → 즉시 합산.
+ * - 24개월 합산이라 거래가 드문 대형 평형도 면적 드롭다운에 잡힌다.
  */
-export async function fetchRecentMonthsData(
+export async function fetchAreaScanData(
   lawdCd: string,
-  monthsWithData = 3
+  onProgress?: (p: AreaScanProgress) => void,
+  months = 24
 ): Promise<RawTradeRecord[]> {
   const { year, month } = getCurrentYearMonth();
-  const merged: RawTradeRecord[] = [];
-  let collected = 0;
-  for (let back = 0; back < 8 && collected < monthsWithData; back++) {
+  const ymds: string[] = [];
+  for (let back = 0; back < months; back++) {
     let y = year;
     let m = month - back;
     while (m <= 0) {
       m += 12;
       y -= 1;
     }
-    const dealYmd = `${y}${String(m).padStart(2, '0')}`;
-    const records = await fetchMonthData(lawdCd, dealYmd);
-    if (records.length > 0) {
-      merged.push(...records);
-      collected++;
-    }
+    ymds.push(`${y}${String(m).padStart(2, '0')}`);
+  }
+
+  const needed = ymds.filter((ymd) => !globalCache.has(getCacheKey(lawdCd, ymd)));
+  const anyFetch = needed.length > 0;
+  let done = 0;
+  onProgress?.({ done, total: needed.length, anyFetch });
+
+  // 캐시 미적중 월만 6개씩 배치, 배치 간 50ms 딜레이
+  for (let i = 0; i < needed.length; i += 6) {
+    const batch = needed.slice(i, i + 6);
+    await Promise.all(
+      batch.map(async (ymd) => {
+        try {
+          await fetchMonthData(lawdCd, ymd); // 성공 시 globalCache에 저장됨
+        } catch (e) {
+          globalCache.set(getCacheKey(lawdCd, ymd), []); // 실패 월은 빈 배열로 계속 진행
+          console.warn(`[${lawdCd} ${ymd}] 평형 스캔 조회 실패:`, e);
+        }
+        done++;
+        onProgress?.({ done, total: needed.length, anyFetch });
+      })
+    );
+    if (i + 6 < needed.length) await sleep(50);
+  }
+
+  // 전체(캐시 포함) 합산
+  const merged: RawTradeRecord[] = [];
+  for (const ymd of ymds) {
+    const recs = globalCache.get(getCacheKey(lawdCd, ymd));
+    if (recs) merged.push(...recs);
   }
   return merged;
 }
