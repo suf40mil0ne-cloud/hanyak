@@ -136,11 +136,26 @@ export async function loadAllData(
   });
 }
 
-/** 특정 지역의 최신 1개월 데이터 조회 (아파트 목록 검색용) */
+/**
+ * 특정 지역의 최신 데이터 조회 (아파트 목록 검색용).
+ * 당월은 실거래 등록 지연(통상 1~2개월)으로 거래가 거의 없을 수 있어,
+ * 데이터가 나오는 가장 최근 월을 찾을 때까지 최대 6개월 역순으로 조회한다.
+ * (월초·연초에 "거래 내역 없음"으로 검색이 실패하던 문제 방지)
+ */
 export async function fetchLatestMonthData(lawdCd: string): Promise<RawTradeRecord[]> {
   const { year, month } = getCurrentYearMonth();
-  const dealYmd = `${year}${String(month).padStart(2, '0')}`;
-  return fetchMonthData(lawdCd, dealYmd);
+  for (let back = 0; back < 6; back++) {
+    let y = year;
+    let m = month - back;
+    while (m <= 0) {
+      m += 12;
+      y -= 1;
+    }
+    const dealYmd = `${y}${String(m).padStart(2, '0')}`;
+    const records = await fetchMonthData(lawdCd, dealYmd);
+    if (records.length > 0) return records;
+  }
+  return [];
 }
 
 /** 다지역 로딩 진행 상황 (지역·월 단위 모두 보고) */
