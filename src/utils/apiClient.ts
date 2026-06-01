@@ -146,7 +146,7 @@ export interface AreaScanProgress {
 /**
  * 특정 지역의 최근 N개월(기본 24) 데이터를 모아 합산 조회 (아파트 목록·면적 검색용).
  * - 현재월부터 N개월 전까지 대상. globalCache에 이미 있는 달은 호출을 건너뛴다.
- * - 캐시 미적중 월만 6개씩 배치 병렬 호출(WAF 차단 방지) + 배치 간 50ms 딜레이.
+ * - 캐시 미적중 월만 6개씩 배치 병렬 호출(WAF 차단 방지) + 배치 간 100ms 딜레이.
  * - 탭 2(주요 아파트 시세)가 같은 지역을 이미 로딩했다면 캐시 100% 적중 → 즉시 합산.
  * - 24개월 합산이라 거래가 드문 대형 평형도 면적 드롭다운에 잡힌다.
  */
@@ -172,7 +172,7 @@ export async function fetchAreaScanData(
   let done = 0;
   onProgress?.({ done, total: needed.length, anyFetch });
 
-  // 캐시 미적중 월만 6개씩 배치, 배치 간 50ms 딜레이
+  // 캐시 미적중 월만 6개씩 배치, 배치 간 100ms 딜레이
   for (let i = 0; i < needed.length; i += 6) {
     const batch = needed.slice(i, i + 6);
     await Promise.all(
@@ -187,7 +187,7 @@ export async function fetchAreaScanData(
         onProgress?.({ done, total: needed.length, anyFetch });
       })
     );
-    if (i + 6 < needed.length) await sleep(50);
+    if (i + 6 < needed.length) await sleep(100);
   }
 
   // 전체(캐시 포함) 합산

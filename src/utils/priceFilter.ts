@@ -220,8 +220,42 @@ export function distinctAreas(areas: number[]): number[] {
   return Array.from(set).sort((a, b) => a - b);
 }
 
-/** 면적 라벨 생성 (예: "84㎡(33평)") */
+/** 면적 라벨 생성 (예: "84㎡ (약 33평)") */
 export function makeAreaLabel(area: number): string {
   const pyeong = sqmToPyeong(area);
-  return `${area.toFixed(0)}㎡(${pyeong}평)`;
+  return `${Math.round(area)}㎡ (약 ${pyeong}평)`;
+}
+
+/** 부분 일치 아파트 검색 옵션 (이름 + 거래 건수) */
+export interface AptOption {
+  name: string;
+  count: number;
+}
+
+/**
+ * 거래 레코드에서 검색어(부분 일치)에 맞는 aptNm 목록을 거래 건수와 함께 생성한다.
+ * - 매칭: 정규화(소문자·공백/기호 제거) 후 검색어 포함 여부
+ * - 정렬: ① 검색어로 시작 ② 검색어 포함, 동순위는 거래 건수 내림차순
+ * - 검색어가 비면 전체를 거래 건수 내림차순으로 반환
+ */
+export function buildAptOptions(records: RawTradeRecord[], query: string): AptOption[] {
+  const counts = new Map<string, number>();
+  for (const r of records) {
+    const nm = r.aptNm?.trim();
+    if (!nm) continue;
+    counts.set(nm, (counts.get(nm) ?? 0) + 1);
+  }
+
+  const q = normalizeApt(query);
+  let entries = Array.from(counts, ([name, count]) => ({ name, count }));
+  if (q) entries = entries.filter((e) => normalizeApt(e.name).includes(q));
+
+  entries.sort((a, b) => {
+    const aStarts = normalizeApt(a.name).startsWith(q) ? 0 : 1;
+    const bStarts = normalizeApt(b.name).startsWith(q) ? 0 : 1;
+    if (aStarts !== bStarts) return aStarts - bStarts; // 시작 일치 우선
+    return b.count - a.count; // 거래 건수 많은 순
+  });
+
+  return entries;
 }

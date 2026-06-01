@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ApartmentInfo, RawTradeRecord, SelectedRegion } from '../types';
 import { fetchAreaScanData } from '../utils/apiClient';
-import { distinctAreas, makeAreaLabel } from '../utils/priceFilter';
+import { distinctAreas, makeAreaLabel, buildAptOptions, AptOption } from '../utils/priceFilter';
 
 interface Props {
   region: SelectedRegion | null;
@@ -21,12 +21,13 @@ const ApartmentSearch: React.FC<Props> = ({
   onBaseChange,
 }) => {
   const [searchName, setSearchName] = useState('');
-  const [aptList, setAptList] = useState<string[]>([]);
+  const [aptList, setAptList] = useState<AptOption[]>([]);
   const [selectedApt, setSelectedApt] = useState('');
   const [areaOptions, setAreaOptions] = useState<number[]>([]);
   const [selectedArea, setSelectedArea] = useState<number | null>(null);
   const [searching, setSearching] = useState(false);
   const [scanMsg, setScanMsg] = useState('');
+  const [areaMsg, setAreaMsg] = useState('');
   const [searchError, setSearchError] = useState('');
   const [rawRecords, setRawRecords] = useState<RawTradeRecord[]>([]);
 
@@ -38,6 +39,7 @@ const ApartmentSearch: React.FC<Props> = ({
 
     setSearching(true);
     setScanMsg('');
+    setAreaMsg('');
     setSearchError('');
     setAptList([]);
     setSelectedApt('');
@@ -48,8 +50,8 @@ const ApartmentSearch: React.FC<Props> = ({
       const records = await fetchAreaScanData(region.lawdCd, (p) => {
         setScanMsg(
           p.anyFetch
-            ? `평형 조회 중... (24개월 데이터 수집 ${p.done}/${p.total})`
-            : '평형 조회 중... (캐시 활용)'
+            ? `평형 조회 중... (24개월 데이터 수집 중 ${p.done}/${p.total})`
+            : '평형 조회 중... (캐시 활용 중)'
         );
       });
       setRawRecords(records);
@@ -59,21 +61,14 @@ const ApartmentSearch: React.FC<Props> = ({
         return;
       }
 
-      // 아파트명 목록 추출 + 검색어 필터
-      const nameSet = new Set<string>();
-      for (const r of records) {
-        if (r.aptNm) nameSet.add(r.aptNm.trim());
-      }
+      // 부분 일치 검색 + 거래 건수 정렬
+      const options = buildAptOptions(records, searchName);
+      setAptList(options);
 
-      const filtered = searchName.trim()
-        ? Array.from(nameSet).filter((n) => n.includes(searchName.trim()))
-        : Array.from(nameSet);
-
-      const sorted = filtered.sort();
-      setAptList(sorted);
-
-      if (sorted.length === 0) {
-        setSearchError(`"${searchName}" 아파트를 찾을 수 없습니다.`);
+      if (options.length === 0) {
+        setSearchError(
+          '검색 결과가 없습니다.\n※ 국토부 API 아파트명은 네이버와 다를 수 있습니다.\n더 짧게 입력해보세요. (예: \'갈산이안\' → \'갈산\' 또는 \'이안\')'
+        );
       }
     } catch (e: unknown) {
       setSearchError((e as Error).message || '조회 중 오류가 발생했습니다.');
@@ -86,13 +81,14 @@ const ApartmentSearch: React.FC<Props> = ({
   const handleAptSelect = (name: string) => {
     setSelectedApt(name);
     setSelectedArea(null);
+    setAreaMsg('');
 
     if (!name) {
       setAreaOptions([]);
       return;
     }
 
-    // 해당 아파트의 전용면적 목록 추출
+    // 해당 아파트의 전용면적 목록 추출 (수집된 24개월 데이터에서)
     const areas = rawRecords
       .filter((r) => r.aptNm?.trim() === name)
       .map((r) => parseFloat(r.excluUseAr))
@@ -100,6 +96,7 @@ const ApartmentSearch: React.FC<Props> = ({
 
     const grouped = distinctAreas(areas);
     setAreaOptions(grouped);
+    setAreaMsg(grouped.length > 0 ? `${grouped.length}개 평형 발견` : '');
     if (grouped.length === 1) setSelectedArea(grouped[0]);
   };
 
@@ -140,8 +137,8 @@ const ApartmentSearch: React.FC<Props> = ({
           <label className="text-xs text-gray-500 font-medium">아파트명 검색</label>
           <input
             type="text"
-            className="input-base w-44"
-            placeholder="예: 래미안"
+            className="input-base w-60"
+            placeholder="아파트명 일부 입력 (예: 갈산, 래미안)"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -165,23 +162,23 @@ const ApartmentSearch: React.FC<Props> = ({
       </div>
 
       {searchError && (
-        <p className="text-red-500 text-sm mb-3">{searchError}</p>
+        <p className="text-red-500 text-sm mb-3 whitespace-pre-line">{searchError}</p>
       )}
 
       {/* 아파트 / 면적 선택 */}
       {aptList.length > 0 && (
         <div className="flex flex-wrap gap-2 items-end mb-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">아파트 선택</label>
+            <label className="text-xs text-gray-500 font-medium">아파트 선택 ({aptList.length}개)</label>
             <select
-              className="select-base w-52"
+              className="select-base w-64"
               value={selectedApt}
               onChange={(e) => handleAptSelect(e.target.value)}
             >
               <option value="">-- 선택 --</option>
-              {aptList.map((n) => (
-                <option key={n} value={n}>
-                  {n}
+              {aptList.map((o) => (
+                <option key={o.name} value={o.name}>
+                  {o.name} (거래 {o.count}건)
                 </option>
               ))}
             </select>
@@ -189,7 +186,9 @@ const ApartmentSearch: React.FC<Props> = ({
 
           {areaOptions.length > 0 && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-500 font-medium">전용면적</label>
+              <label className="text-xs text-gray-500 font-medium">
+                전용면적{areaMsg && <span className="text-blue-600 ml-1">· {areaMsg}</span>}
+              </label>
               <select
                 className="select-base w-52"
                 value={selectedArea ?? ''}
