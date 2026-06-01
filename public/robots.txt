@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://hanyak.pages.dev/sitemap.xml
