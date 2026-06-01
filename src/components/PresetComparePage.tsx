@@ -149,40 +149,82 @@ const PresetComparePage: React.FC = () => {
   const chartResults: ApartmentData[] =
     chartCategory === '전체' ? results : results.filter((r) => r.preset.category === chartCategory);
 
-  // 기준 아파트 선택 시에만 지수 컬럼 노출 (미선택 시 테이블이 좁아짐)
+  // ───────── 렌더 보조 (로직 불변, 표현만 담당) ─────────
+  // 기준 아파트 선택 시에만 지수 컬럼 노출
   const showIdx = baseId !== '';
-  const idxColCount = showIdx ? 1 : 0;
-  // 컬럼: 아파트 + 비고 + 이전연도(시세[+지수]) + 2026실거래(시세[+지수]) + 2026입력(시세[+지수])
-  const totalCols = 2 + pastYears.length * (1 + idxColCount) + (1 + idxColCount) * 2;
-  const tableWidth =
-    140 + 60 + pastYears.length * (75 + (showIdx ? 45 : 0)) + (75 + (showIdx ? 45 : 0)) + (85 + (showIdx ? 45 : 0));
+  const idxCols = showIdx ? pastYears.length + 2 : 0; // 과거연도 + 2026실거래 + 2026입력
+  const idxSpan = showIdx ? 2 : 1; // 연도 그룹당 컬럼 수(시세[+지수])
+  const totalCols = 2 + pastYears.length + 2 + idxCols; // 아파트+비고 + 시세들 + 지수들
+  const COLW = { apt: 160, note: 70, year: 90, real: 90, input: 100, idx: 50 };
+  const sumW =
+    COLW.apt + COLW.note + pastYears.length * COLW.year + COLW.real + COLW.input + idxCols * COLW.idx;
+  const tableWidth = Math.max(900, sumW);
 
-  // 지수 = round(가격/기준가격×100); 기준 미선택이면 null → 컬럼 자체가 숨겨짐
   const calcIdx = (price: number | null, basePrice: number | null): number | null =>
     showIdx && price != null && basePrice != null && basePrice !== 0
       ? Math.round((price / basePrice) * 100)
       : null;
 
-  // 시세 셀: "36.24억 (실거래 8)" 한 줄
+  // 시세 셀: "36.24억 (실거래 8)"
   const priceTd = (price: number | null, count: number) => (
-    <td className="px-2 py-1 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle whitespace-nowrap">
+    <td className="px-2 py-1.5 text-center align-middle whitespace-nowrap border-b border-gray-100 border-l border-gray-200">
       {price != null ? (
-        <>
+        <span>
           <span className="text-[13px] font-bold text-gray-800">{price.toFixed(2)}억</span>
           {count > 0 && <span className="text-[10px] text-gray-400 ml-1">(실거래 {count})</span>}
-        </>
+        </span>
       ) : (
         <span className="text-[13px] text-gray-300">-</span>
       )}
     </td>
   );
 
-  // 지수 셀
   const idxTd = (idx: number | null) => (
-    <td className={`px-2 py-1 border border-gray-200 text-center align-middle text-[11px] ${idxClass(idx)}`}>
+    <td className={`px-1 py-1.5 text-center align-middle text-[11px] border-b border-gray-100 ${idxClass(idx)}`}>
       {idx == null ? '-' : idx}
     </td>
   );
+
+  // 2026 현재시세 입력 셀 (input 70px + "억", 위에 API 안내)
+  const inputCell = (r: PresetResult, api2026: number | null) => (
+    <td className="px-2 py-1.5 text-center align-middle border-b border-gray-100 border-l border-gray-200">
+      <div className="flex flex-col items-center gap-0.5">
+        {api2026 != null && (
+          <span className="text-[9px] text-gray-400 leading-none">API {api2026.toFixed(2)}억</span>
+        )}
+        <div className="flex items-center justify-center gap-0.5">
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            placeholder={api2026 != null ? api2026.toFixed(2) : '입력'}
+            value={r.manualPrice ?? ''}
+            onChange={(e) =>
+              handleManualPrice(r.info.id, e.target.value === '' ? undefined : parseFloat(e.target.value))
+            }
+            className="input-base text-center text-[12px] px-1 py-0"
+            style={{ width: '70px', height: '28px' }}
+          />
+          <span className="text-[11px] text-gray-500">억</span>
+        </div>
+      </div>
+    </td>
+  );
+
+  // 모바일 카드용 간략 시세
+  const fmtShort = (p: number | null): string => (p != null ? `${p.toFixed(1)}억` : '-');
+
+  // 비고 태그
+  const noteTag = (note?: string) =>
+    note ? (
+      <span className="inline-block text-[10px] text-gray-500 bg-gray-100 rounded px-1.5 py-0.5">{note}</span>
+    ) : null;
+
+  // 헤더 셀 공통 (스크롤 패널 상단에 고정 — 2단이므로 1행 top-0, 2행은 1행 높이만큼 오프셋)
+  const thBase = 'px-1.5 py-2 font-semibold border-b border-blue-900 whitespace-nowrap sticky top-0 z-20';
+  const thSub = 'px-1.5 py-1 font-medium border-b border-blue-800 whitespace-nowrap sticky top-[34px] z-20';
+
+  let rowIdx = 0; // 데스크탑 zebra 줄무늬용 카운터
 
   return (
     <div className="space-y-4">
@@ -192,7 +234,7 @@ const PresetComparePage: React.FC = () => {
           <div>
             <h2 className="text-base font-semibold text-gray-800">⭐ 주요 아파트 국평 시세 현황</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              국평(전용 84㎡) 기준 · 직거래/법인/이상치 자동 제외 · {curYear}년은 실거래/현재시세(입력) 분리 · 기준 아파트 선택 시 지수 표시
+              국평(전용 84㎡) · 직거래/법인/이상치 자동 제외 · {curYear}년 실거래/현재시세 분리 · 기준 선택 시 지수 표시
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -213,116 +255,69 @@ const PresetComparePage: React.FC = () => {
           </div>
         </div>
 
+        {/* 로딩 진행바 */}
         {loading && (
-          <div className="mt-3 flex items-center gap-3">
-            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-xs text-gray-600">{progress.label || '조회 중...'}</p>
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-1 gap-2">
+              <p className="text-xs text-gray-600 truncate">{progress.label || '데이터 로딩 중...'}</p>
               {progress.total > 0 && (
-                <div className="mt-1 bg-gray-200 rounded-full h-1.5">
-                  <div
-                    className="bg-blue-600 h-1.5 rounded-full transition-all"
-                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
-                  />
-                </div>
+                <span className="text-xs font-semibold text-blue-600 shrink-0">{progress.current}%</span>
               )}
+            </div>
+            <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress.total > 0 ? progress.current : 0}%` }}
+              />
             </div>
           </div>
         )}
       </div>
 
-      {/* 카테고리별 테이블 */}
+      {/* ===== 데스크탑 테이블 (md 이상) ===== */}
       {!loading && results.length > 0 && (
-        <div className="card p-0 overflow-x-auto">
+        <div className="hidden md:block card p-0 overflow-auto max-h-[78vh]">
           <table
-            className="text-[12px] border-collapse"
-            style={{ tableLayout: 'fixed', width: `${tableWidth}px` }}
+            className="text-[12px] border-collapse w-full shadow-sm"
+            style={{ tableLayout: 'fixed', minWidth: `${tableWidth}px` }}
           >
             <colgroup>
-              <col style={{ width: '140px' }} />
-              <col style={{ width: '60px' }} />
+              <col style={{ width: `${COLW.apt}px` }} />
+              <col style={{ width: `${COLW.note}px` }} />
               {pastYears.map((y) => (
                 <React.Fragment key={y}>
-                  <col style={{ width: '75px' }} />
-                  {showIdx && <col style={{ width: '45px' }} />}
+                  <col style={{ width: `${COLW.year}px` }} />
+                  {showIdx && <col style={{ width: `${COLW.idx}px` }} />}
                 </React.Fragment>
               ))}
-              {/* 2026 실거래 */}
-              <col style={{ width: '75px' }} />
-              {showIdx && <col style={{ width: '45px' }} />}
-              {/* 2026 입력 */}
-              <col style={{ width: '85px' }} />
-              {showIdx && <col style={{ width: '45px' }} />}
+              <col style={{ width: `${COLW.real}px` }} />
+              {showIdx && <col style={{ width: `${COLW.idx}px` }} />}
+              <col style={{ width: `${COLW.input}px` }} />
+              {showIdx && <col style={{ width: `${COLW.idx}px` }} />}
             </colgroup>
 
-            {/* 2단 헤더 (sticky top) */}
+            {/* 2단 헤더 (blue-800, sticky) */}
             <thead>
-              <tr className="bg-gray-100 text-gray-700">
-                <th
-                  rowSpan={2}
-                  className="px-2 py-1 text-left font-semibold border border-gray-200 sticky left-0 top-0 bg-gray-100 z-30 align-bottom"
-                >
-                  아파트
-                </th>
-                <th
-                  rowSpan={2}
-                  className="px-1 py-1 text-center font-semibold border border-gray-200 sticky top-0 bg-gray-100 z-20 align-bottom"
-                >
-                  비고
-                </th>
+              <tr className="bg-blue-800 text-white text-left">
+                <th rowSpan={2} className={`${thBase} text-left sticky left-0 z-30 bg-blue-800`}>아파트</th>
+                <th rowSpan={2} className={`${thBase} text-center bg-blue-800`}>비고</th>
                 {pastYears.map((y) => (
-                  <th
-                    key={y}
-                    colSpan={1 + idxColCount}
-                    className="px-1 py-1 text-center font-semibold border border-gray-200 border-l-2 border-l-gray-300 whitespace-nowrap sticky top-0 bg-gray-100 z-20"
-                  >
-                    {y}
-                  </th>
+                  <th key={y} colSpan={idxSpan} className={`${thBase} text-center bg-blue-800`}>{y}</th>
                 ))}
-                <th
-                  colSpan={1 + idxColCount}
-                  className="px-1 py-1 text-center font-semibold border border-gray-200 border-l-2 border-l-gray-300 whitespace-nowrap sticky top-0 bg-gray-100 z-20"
-                >
-                  {curYear} 실거래
-                </th>
-                <th
-                  colSpan={1 + idxColCount}
-                  className="px-1 py-1 text-center font-semibold border border-gray-200 border-l-2 border-l-gray-300 whitespace-nowrap sticky top-0 bg-gray-100 z-20"
-                >
-                  {curYear} 현재시세
-                </th>
+                <th colSpan={idxSpan} className={`${thBase} text-center bg-blue-800`}>{curYear} 실거래</th>
+                <th colSpan={idxSpan} className={`${thBase} text-center bg-blue-800`}>{curYear} 현재시세</th>
               </tr>
-              <tr className="bg-gray-100 text-gray-500">
+              <tr className="bg-blue-700 text-blue-50">
                 {pastYears.map((y) => (
                   <React.Fragment key={y}>
-                    <th className="px-1 py-0.5 text-center font-medium border border-gray-200 border-l-2 border-l-gray-300 whitespace-nowrap sticky top-[26px] bg-gray-100 z-20">
-                      시세
-                    </th>
-                    {showIdx && (
-                      <th className="px-1 py-0.5 text-center font-medium border border-gray-200 sticky top-[26px] bg-gray-100 z-20">
-                        지수
-                      </th>
-                    )}
+                    <th className={`${thSub} text-center bg-blue-700`}>시세</th>
+                    {showIdx && <th className={`${thSub} text-center bg-blue-700`}>지수</th>}
                   </React.Fragment>
                 ))}
-                {/* 2026 실거래 */}
-                <th className="px-1 py-0.5 text-center font-medium border border-gray-200 border-l-2 border-l-gray-300 whitespace-nowrap sticky top-[26px] bg-gray-100 z-20">
-                  시세
-                </th>
-                {showIdx && (
-                  <th className="px-1 py-0.5 text-center font-medium border border-gray-200 sticky top-[26px] bg-gray-100 z-20">
-                    지수
-                  </th>
-                )}
-                {/* 2026 입력 */}
-                <th className="px-1 py-0.5 text-center font-medium border border-gray-200 border-l-2 border-l-gray-300 whitespace-nowrap sticky top-[26px] bg-gray-100 text-blue-700 z-20">
-                  입력
-                </th>
-                {showIdx && (
-                  <th className="px-1 py-0.5 text-center font-medium border border-gray-200 sticky top-[26px] bg-gray-100 z-20">
-                    지수
-                  </th>
-                )}
+                <th className={`${thSub} text-center bg-blue-700`}>시세</th>
+                {showIdx && <th className={`${thSub} text-center bg-blue-700`}>지수</th>}
+                <th className={`${thSub} text-center bg-blue-700`}>입력</th>
+                {showIdx && <th className={`${thSub} text-center bg-blue-700`}>지수</th>}
               </tr>
             </thead>
 
@@ -332,41 +327,45 @@ const PresetComparePage: React.FC = () => {
                 if (rows.length === 0) return null;
                 return (
                   <React.Fragment key={cat}>
-                    {/* 카테고리 구분 행 */}
+                    {/* 카테고리 구분 행 (심플 border-bottom) */}
                     <tr>
                       <td
                         colSpan={totalCols}
-                        className="bg-gray-50 text-gray-500 text-[11px] font-medium px-2 py-0.5 border border-gray-200 border-l-2 border-l-gray-300"
+                        className="bg-[#f8f9fa] text-gray-500 text-[12px] text-center py-1 border-b border-gray-200"
                       >
-                        {cat}
+                        ── {cat} ──
                       </td>
                     </tr>
 
                     {rows.map((r) => {
                       const isBase = r.info.id === baseId;
-                      const rowBg = isBase ? 'bg-blue-50' : 'bg-white';
+                      const zebra = rowIdx % 2 === 1 ? 'bg-[#fafafa]' : 'bg-white';
+                      rowIdx++;
+                      const rowBg = isBase ? 'bg-blue-100' : zebra;
                       const api2026 = r.yearlyStats[curYear]?.avgPrice ?? null;
                       const baseApi2026 = baseResult?.yearlyStats[curYear]?.avgPrice ?? null;
                       const eff2026 = effectivePrice(r, curYear);
                       const baseEff2026 = baseResult ? effectivePrice(baseResult, curYear) : null;
                       return (
-                        <tr key={r.info.id} className={`${rowBg} hover:bg-gray-50 transition-colors`}>
-                          {/* 아파트 (기준 라디오 + ★ + 이름) */}
-                          <td className={`px-2 py-1 border border-gray-200 sticky left-0 z-10 ${rowBg}`}>
-                            <label className="flex items-center gap-1 cursor-pointer" title="기준 설정/해제">
+                        <tr key={r.info.id} className={`group ${rowBg} hover:bg-blue-50 transition-colors`}>
+                          {/* 아파트 (기준 라디오 + ★ + 이름, 줄바꿈 허용) */}
+                          <td className={`px-2 py-1.5 border-b border-gray-100 border-r border-gray-200 sticky left-0 z-10 ${rowBg} group-hover:bg-blue-50`}>
+                            <label className="flex items-start gap-1.5 cursor-pointer" title="기준 설정/해제">
                               <input
                                 type="radio"
                                 name="presetBase"
                                 checked={isBase}
                                 onChange={() => handleBase(r.info.id)}
-                                className="accent-blue-600 shrink-0 w-3 h-3"
+                                className="accent-blue-600 shrink-0 w-3.5 h-3.5 mt-0.5"
                               />
-                              {isBase && <span className="text-blue-600 shrink-0 leading-none text-[11px]">★</span>}
-                              <span className="font-medium text-gray-800 text-[12px] truncate">{r.preset.label}</span>
+                              <span className="font-semibold text-gray-800 text-[13px] leading-tight">
+                                {isBase && <span className="text-blue-600 mr-0.5">★</span>}
+                                {r.preset.label}
+                              </span>
                             </label>
                           </td>
                           {/* 비고 */}
-                          <td className="px-1 py-1 border border-gray-200 text-[10px] text-gray-400 text-center truncate">
+                          <td className="px-1 py-1.5 border-b border-gray-100 border-l border-gray-200 text-[10px] text-gray-400 text-center">
                             {r.preset.note || '-'}
                           </td>
 
@@ -388,27 +387,7 @@ const PresetComparePage: React.FC = () => {
                           {showIdx && idxTd(calcIdx(api2026, baseApi2026))}
 
                           {/* 2026 현재시세(입력) */}
-                          <td className="px-1 py-1 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle">
-                            <div className="flex flex-col items-center gap-0.5">
-                              {api2026 != null && (
-                                <span className="text-[9px] text-gray-400 leading-none">API {api2026.toFixed(2)}억</span>
-                              )}
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                placeholder={api2026 != null ? api2026.toFixed(2) : '입력'}
-                                value={r.manualPrice ?? ''}
-                                onChange={(e) =>
-                                  handleManualPrice(
-                                    r.info.id,
-                                    e.target.value === '' ? undefined : parseFloat(e.target.value)
-                                  )
-                                }
-                                className="input-base h-6 w-full text-center text-[12px] px-1 py-0"
-                              />
-                            </div>
-                          </td>
+                          {inputCell(r, api2026)}
                           {showIdx && idxTd(calcIdx(eff2026, baseEff2026))}
                         </tr>
                       );
@@ -418,6 +397,105 @@ const PresetComparePage: React.FC = () => {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ===== 모바일 카드 (md 미만) ===== */}
+      {!loading && results.length > 0 && (
+        <div className="md:hidden">
+          {PRESET_CATEGORIES.map((cat) => {
+            const rows = results.filter((r) => r.preset.category === cat);
+            if (rows.length === 0) return null;
+            return (
+              <div key={cat}>
+                <div className="text-[12px] text-gray-500 text-center py-1.5">── {cat} ──</div>
+                {rows.map((r) => {
+                  const isBase = r.info.id === baseId;
+                  const api2026 = r.yearlyStats[curYear]?.avgPrice ?? null;
+                  return (
+                    <div
+                      key={r.info.id}
+                      className={`rounded-lg shadow-sm bg-white p-3 mb-2 border ${
+                        isBase ? 'border-2 border-blue-600' : 'border-gray-200'
+                      }`}
+                    >
+                      {/* 상단: 이름 + 비고 / 기준 라디오 */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-[13px] text-gray-800">
+                            {isBase && <span className="text-blue-600 mr-0.5">★</span>}
+                            {r.preset.label}
+                          </div>
+                          {r.preset.note && <div className="mt-1">{noteTag(r.preset.note)}</div>}
+                        </div>
+                        <label className="flex items-center gap-1 cursor-pointer shrink-0">
+                          <input
+                            type="radio"
+                            name="presetBaseMobile"
+                            checked={isBase}
+                            onChange={() => handleBase(r.info.id)}
+                            className="accent-blue-600 w-4 h-4"
+                          />
+                          <span className="text-[10px] text-gray-500">기준</span>
+                        </label>
+                      </div>
+
+                      {/* 본문: 연도별 시세 미니 테이블 (가로 스크롤) */}
+                      <div className="mt-2 overflow-x-auto">
+                        <table className="text-[11px] border-collapse w-full min-w-max">
+                          <tbody>
+                            <tr className="text-gray-500">
+                              <td className="px-2 py-1 border border-gray-100 bg-gray-50 font-medium">연도</td>
+                              {pastYears.map((y) => (
+                                <td key={y} className="px-2 py-1 border border-gray-100 bg-gray-50 text-center">{y}</td>
+                              ))}
+                              <td className="px-2 py-1 border border-gray-100 bg-gray-50 text-center whitespace-nowrap">
+                                {curYear} 실거래
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="px-2 py-1 border border-gray-100 bg-gray-50 font-medium text-gray-500">시세</td>
+                              {pastYears.map((y) => (
+                                <td key={y} className="px-2 py-1 border border-gray-100 text-center font-bold text-gray-800">
+                                  {fmtShort(r.yearlyStats[y]?.avgPrice ?? null)}
+                                </td>
+                              ))}
+                              <td className="px-2 py-1 border border-gray-100 text-center font-bold text-gray-800">
+                                {fmtShort(api2026)}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 하단: 2026 현재시세 입력 (full width) */}
+                      <div className="mt-2">
+                        <label className="text-[10px] text-gray-500 block mb-0.5">
+                          {curYear} 현재시세 입력
+                          {api2026 != null && <span className="text-gray-400"> (API {api2026.toFixed(2)}억)</span>}
+                        </label>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            placeholder={api2026 != null ? api2026.toFixed(2) : '입력'}
+                            value={r.manualPrice ?? ''}
+                            onChange={(e) =>
+                              handleManualPrice(r.info.id, e.target.value === '' ? undefined : parseFloat(e.target.value))
+                            }
+                            className="input-base w-full text-[13px]"
+                            style={{ height: '32px' }}
+                          />
+                          <span className="text-[12px] text-gray-500 shrink-0">억</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       )}
 

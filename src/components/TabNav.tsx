@@ -14,17 +14,17 @@ const TABS: { key: TabKey; label: string }[] = [
 
 const TabNav: React.FC<Props> = ({ active, onChange }) => {
   return (
-    <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
+    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex gap-1">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => onChange(t.key)}
-              className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              className={`px-5 py-3 text-sm border-b-2 -mb-px transition-colors ${
                 active === t.key
-                  ? 'border-blue-600 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-blue-600 text-blue-600 font-bold'
+                  : 'border-transparent text-gray-500 font-semibold hover:text-gray-700'
               }`}
             >
               {t.label}
