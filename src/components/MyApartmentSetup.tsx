@@ -99,7 +99,7 @@ const MyApartmentSetup: React.FC<Props> = ({ baseInfo, onConfirm, onClear, loadi
         <h2 className="text-base font-semibold text-gray-800">🏠 내 아파트 설정 (기준)</h2>
         {baseInfo && (
           <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-800 text-[13px] font-semibold rounded-full px-3 py-1">
-            📍 기준: {baseInfo.name} {Math.round(baseInfo.area)}㎡
+            📍 기준: {baseInfo.name} {baseInfo.areaLabel}
             <button
               onClick={onClear}
               className="ml-0.5 text-blue-400 hover:text-red-500 font-bold leading-none"

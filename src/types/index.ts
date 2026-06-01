@@ -22,7 +22,7 @@ export interface ApartmentInfo {
   name: string;
   lawdCd: string;
   area: number;         // 전용면적 ㎡ (대표값, 그룹 기준)
-  areaLabel: string;   // "전용 84㎡ (약 33평)"
+  areaLabel: string;   // "84㎡(33평)"
   regionLabel: string; // "서울특별시 강남구"
 }
 

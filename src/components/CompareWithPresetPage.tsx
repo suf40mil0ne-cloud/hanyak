@@ -151,7 +151,7 @@ const CompareWithPresetPage: React.FC = () => {
     <tr className="bg-blue-100">
       <td className="px-2 py-1.5 border-b border-gray-200 border-r border-gray-200 sticky left-0 z-10 bg-blue-100">
         <span className="font-bold text-blue-900 text-[13px] leading-tight">📍 {baseData.info.name}</span>
-        <div className="text-[10px] text-blue-500">{Math.round(baseData.info.area)}㎡ · {baseData.info.regionLabel}</div>
+        <div className="text-[10px] text-blue-500">{baseData.info.areaLabel} · {baseData.info.regionLabel}</div>
       </td>
       <td className="px-1 py-1.5 border-b border-gray-200 border-l border-gray-200 text-center">
         <span className="inline-block text-[10px] text-white bg-blue-600 rounded px-1.5 py-0.5 font-semibold">내 아파트</span>
@@ -355,7 +355,7 @@ const CompareWithPresetPage: React.FC = () => {
                 <div className="font-bold text-[13px] text-blue-900">📍 {baseData.info.name}</div>
                 <span className="text-[10px] text-white bg-blue-600 rounded px-1.5 py-0.5 font-semibold">내 아파트</span>
               </div>
-              <div className="text-[11px] text-blue-500 mb-2">{Math.round(baseData.info.area)}㎡ · {baseData.info.regionLabel}</div>
+              <div className="text-[11px] text-blue-500 mb-2">{baseData.info.areaLabel} · {baseData.info.regionLabel}</div>
               <div className="overflow-x-auto">
                 <table className="text-[11px] border-collapse w-full min-w-max">
                   <tbody>

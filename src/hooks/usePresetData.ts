@@ -8,7 +8,7 @@ import {
   buildYearMonthList,
   globalCache,
 } from '../utils/apiClient';
-import { calcYearlyStats, prefixMatcher } from '../utils/priceFilter';
+import { calcYearlyStats, prefixMatcher, makeAreaLabel } from '../utils/priceFilter';
 import { getRegionName } from '../data/lawdCodes';
 
 /** 프리셋은 이상 거래를 항상 자동 제외 (국평 기준 대표 시세) */
@@ -82,7 +82,7 @@ export function usePresetData(): UsePresetData {
         name: p.label,
         lawdCd: p.lawdCd,
         area: p.areaTarget,
-        areaLabel: `전용 ${p.areaTarget}㎡`,
+        areaLabel: makeAreaLabel(p.areaTarget),
         regionLabel: p.category,
       };
       return { preset: p, info, yearlyStats, manualPrice: manualPrices[id] };

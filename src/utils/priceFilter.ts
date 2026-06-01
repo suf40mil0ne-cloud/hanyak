@@ -225,9 +225,8 @@ export function groupAreas(areas: number[]): number[] {
   return result.sort((a, b) => a - b);
 }
 
-/** 면적 라벨 생성 */
+/** 면적 라벨 생성 (예: "84㎡(33평)") */
 export function makeAreaLabel(area: number): string {
   const pyeong = sqmToPyeong(area);
-  const isNational = area >= 81 && area <= 87;
-  return `전용 ${area.toFixed(0)}㎡ (약 ${pyeong}평${isNational ? ', 국평' : ''})`;
+  return `${area.toFixed(0)}㎡(${pyeong}평)`;
 }
