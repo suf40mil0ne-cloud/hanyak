@@ -12,10 +12,13 @@ import { calcYearlyStats, prefixMatcher, makeAreaLabel } from '../utils/priceFil
 import { getRegionName } from '../data/lawdCodes';
 
 /** 프리셋은 이상 거래를 항상 자동 제외 (국평 기준 대표 시세) */
+// areaTolerance 5: 프리셋 areaTarget은 검증된 대표 면적이라 기존 ±5㎡ 매칭을 유지
+// (직접 검색은 기본 ±3㎡ 사용 → 더 좁게 매칭)
 export const PRESET_FILTER: Omit<FilterOptions, 'monthFilter'> = {
   excludeDirect: true,
   excludeCorporate: true,
   excludeOutliers: true,
+  areaTolerance: 5,
 };
 
 export interface PresetResult extends ApartmentData {

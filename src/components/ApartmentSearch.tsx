@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ApartmentInfo, RawTradeRecord, SelectedRegion } from '../types';
-import { fetchLatestMonthData } from '../utils/apiClient';
-import { groupAreas, makeAreaLabel } from '../utils/priceFilter';
+import { fetchRecentMonthsData } from '../utils/apiClient';
+import { distinctAreas, makeAreaLabel } from '../utils/priceFilter';
 
 interface Props {
   region: SelectedRegion | null;
@@ -43,11 +43,11 @@ const ApartmentSearch: React.FC<Props> = ({
     setSelectedArea(null);
 
     try {
-      const records = await fetchLatestMonthData(region.lawdCd);
+      const records = await fetchRecentMonthsData(region.lawdCd);
       setRawRecords(records);
 
       if (records.length === 0) {
-        setSearchError('이번 달 해당 지역의 거래 내역이 없습니다. 지역을 확인해주세요.');
+        setSearchError('최근 해당 지역의 거래 내역이 없습니다. 지역을 확인해주세요.');
         return;
       }
 
@@ -89,7 +89,7 @@ const ApartmentSearch: React.FC<Props> = ({
       .map((r) => parseFloat(r.excluUseAr))
       .filter((a) => !isNaN(a));
 
-    const grouped = groupAreas(areas);
+    const grouped = distinctAreas(areas);
     setAreaOptions(grouped);
     if (grouped.length === 1) setSelectedArea(grouped[0]);
   };

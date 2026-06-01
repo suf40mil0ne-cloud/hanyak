@@ -137,14 +137,20 @@ export async function loadAllData(
 }
 
 /**
- * 특정 지역의 최신 데이터 조회 (아파트 목록 검색용).
- * 당월은 실거래 등록 지연(통상 1~2개월)으로 거래가 거의 없을 수 있어,
- * 데이터가 나오는 가장 최근 월을 찾을 때까지 최대 6개월 역순으로 조회한다.
- * (월초·연초에 "거래 내역 없음"으로 검색이 실패하던 문제 방지)
+ * 특정 지역의 최근 데이터 조회 (아파트 목록·면적 검색용).
+ * 최근 월부터 역순으로, 거래가 있는 월 monthsWithData개를 모아 합산해서 돌려준다.
+ * - 당월은 실거래 등록 지연(통상 1~2개월)으로 비어 있을 수 있어, 데이터 있는 월만 카운트
+ * - 여러 달을 합산하므로 거래가 드문 대형 평형도 면적 드롭다운에 잡힌다
+ * - 안전상 최대 8개월까지만 역순 조회
  */
-export async function fetchLatestMonthData(lawdCd: string): Promise<RawTradeRecord[]> {
+export async function fetchRecentMonthsData(
+  lawdCd: string,
+  monthsWithData = 3
+): Promise<RawTradeRecord[]> {
   const { year, month } = getCurrentYearMonth();
-  for (let back = 0; back < 6; back++) {
+  const merged: RawTradeRecord[] = [];
+  let collected = 0;
+  for (let back = 0; back < 8 && collected < monthsWithData; back++) {
     let y = year;
     let m = month - back;
     while (m <= 0) {
@@ -153,9 +159,12 @@ export async function fetchLatestMonthData(lawdCd: string): Promise<RawTradeReco
     }
     const dealYmd = `${y}${String(m).padStart(2, '0')}`;
     const records = await fetchMonthData(lawdCd, dealYmd);
-    if (records.length > 0) return records;
+    if (records.length > 0) {
+      merged.push(...records);
+      collected++;
+    }
   }
-  return [];
+  return merged;
 }
 
 /** 다지역 로딩 진행 상황 (지역·월 단위 모두 보고) */

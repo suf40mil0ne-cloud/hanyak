@@ -73,7 +73,7 @@ export function filterAndCalcMonthly(
 
     const ar = parseFloat(String(r.excluUseAr));
     if (isNaN(ar)) return false;
-    if (Math.abs(ar - area) > 5) return false; // 선택 면적 ±5㎡
+    if (Math.abs(ar - area) > (options.areaTolerance ?? 3)) return false; // 선택 면적 ±N㎡ (기본 3)
 
     if (parseInt(r.dealYear, 10) !== year) return false;
     if (parseInt(r.dealMonth, 10) !== month) return false;
@@ -161,12 +161,13 @@ export function calcYearlyStats(
       const records = dataMap.get(key);
       if (!records || records.length === 0) continue;
 
-      // 디버그: 명칭+면적(±5㎡) 1차 매칭 건수 집계
+      // 디버그: 명칭+면적(±tol㎡) 1차 매칭 건수 집계
       if (debugLabel) {
+        const tol = options.areaTolerance ?? 3;
         rawTotal += records.filter((r) => {
           if (!r.aptNm || !matchFn(r.aptNm)) return false;
           const ar = parseFloat(String(r.excluUseAr));
-          return !isNaN(ar) && Math.abs(ar - area) <= 5;
+          return !isNaN(ar) && Math.abs(ar - area) <= tol;
         }).length;
       }
 
@@ -190,9 +191,10 @@ export function calcYearlyStats(
   }
 
   if (debugLabel) {
+    const tol = options.areaTolerance ?? 3;
     const range = options.monthFilter !== null ? `${options.monthFilter}월` : '연평균';
     console.log(
-      `[면적필터] ${debugLabel} 전용 ${area}±5㎡ (${range}) | 명칭+면적 매칭 ${rawTotal}건 → 이상거래/IQR 필터 후 ${finalTotal}건`
+      `[면적필터] ${debugLabel} 전용 ${area}±${tol}㎡ (${range}) | 명칭+면적 매칭 ${rawTotal}건 → 이상거래/IQR 필터 후 ${finalTotal}건`
     );
   }
 
@@ -204,25 +206,18 @@ export function sqmToPyeong(sqm: number): number {
   return Math.round(sqm * 0.3025);
 }
 
-/** 전용면적 그룹핑: 5㎡ 단위로 대표값 계산 */
-export function groupAreas(areas: number[]): number[] {
-  if (areas.length === 0) return [];
-
-  const grouped = new Map<number, number[]>();
+/**
+ * 거래 면적 목록 → 드롭다운용 정수 ㎡ 목록.
+ * 각 excluUseAr을 정수로 반올림한 뒤 중복을 제거해 오름차순 정렬한다.
+ * 예: [57.37, 57.12, 84.99, 84.82, 150.27, 149.95] → [57, 85, 150]
+ * (기존 5㎡ 단위 그룹핑이 일부 면적을 누락시키던 문제를 단순화)
+ */
+export function distinctAreas(areas: number[]): number[] {
+  const set = new Set<number>();
   for (const a of areas) {
-    const key = Math.round(a / 5) * 5; // 5㎡ 단위 반올림
-    if (!grouped.has(key)) grouped.set(key, []);
-    grouped.get(key)!.push(a);
+    if (!isNaN(a)) set.add(Math.round(a));
   }
-
-  const result: number[] = [];
-  for (const [, vals] of grouped) {
-    // 그룹 내 중앙값을 대표값으로
-    const sorted = vals.sort((a, b) => a - b);
-    result.push(sorted[Math.floor(sorted.length / 2)]);
-  }
-
-  return result.sort((a, b) => a - b);
+  return Array.from(set).sort((a, b) => a - b);
 }
 
 /** 면적 라벨 생성 (예: "84㎡(33평)") */

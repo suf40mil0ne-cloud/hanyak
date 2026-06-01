@@ -53,6 +53,7 @@ export interface FilterOptions {
   excludeCorporate: boolean;
   excludeOutliers: boolean;
   monthFilter: number | null;  // null = 전체 연평균, 1~12 = 특정 월
+  areaTolerance?: number;      // 선택 면적 ±N㎡ 매칭 범위 (기본 3)
 }
 
 /** 지역 선택 상태 */
