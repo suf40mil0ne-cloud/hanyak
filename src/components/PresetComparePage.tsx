@@ -1,25 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { PRESET_APARTMENTS, PRESET_CATEGORIES, PresetApt } from '../data/presetApartments';
-import { ApartmentData, ApartmentInfo, FilterOptions } from '../types';
-import { loadManyRegions, getQueryYears, getCacheKey, buildYearMonthList, globalCache } from '../utils/apiClient';
-import { calcYearlyStats, prefixMatcher } from '../utils/priceFilter';
-import { getRegionName } from '../data/lawdCodes';
+import React, { useState } from 'react';
+import { PRESET_CATEGORIES } from '../data/presetApartments';
+import { ApartmentData } from '../types';
+import { getQueryYears } from '../utils/apiClient';
+import { usePresetData, PresetResult } from '../hooks/usePresetData';
 import PriceChart from './PriceChart';
-
-// 프리셋은 이상 거래를 항상 자동 제외 (국평 기준 대표 시세)
-const PRESET_FILTER: Omit<FilterOptions, 'monthFilter'> = {
-  excludeDirect: true,
-  excludeCorporate: true,
-  excludeOutliers: true,
-};
-
-interface PresetResult extends ApartmentData {
-  preset: PresetApt;
-}
-
-function presetId(p: PresetApt): string {
-  return `${p.lawdCd}_${p.aptNm}_${p.areaTarget}_${p.label}`;
-}
 
 /** 지수 셀 색상: 100=파랑 bold, >110=빨강, <90=초록, 90~110=회색 */
 function idxClass(idx: number | null): string {
@@ -35,107 +19,11 @@ const PresetComparePage: React.FC = () => {
   const curYear = years[years.length - 1];
   const pastYears = years.slice(0, -1); // 2026 이전 연도 (실거래 단일 컬럼)
 
-  const [monthFilter, setMonthFilter] = useState<number | null>(null);
+  const { monthFilter, results, loading, progress, handleMonthFilter, handleManualPrice, reload } =
+    usePresetData();
+
   const [baseId, setBaseId] = useState<string>(''); // '' = 기준 없음
-  const [results, setResults] = useState<PresetResult[]>([]);
-  const [manualPrices, setManualPrices] = useState<Record<string, number | undefined>>({});
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: 0, label: '' });
   const [chartCategory, setChartCategory] = useState<string>('전체');
-  const loadedRef = useRef(false);
-
-  const uniqueLawdCds = Array.from(new Set(PRESET_APARTMENTS.map((p) => p.lawdCd)));
-
-  // 현재 monthFilter 기준으로 globalCache에서 통계 재계산 (네트워크 호출 없음)
-  const recompute = (mf: number | null) => {
-    const next: PresetResult[] = PRESET_APARTMENTS.map((p) => {
-      const yearlyStats = calcYearlyStats(
-        globalCache,
-        p.lawdCd,
-        years,
-        prefixMatcher(p.aptNm),
-        p.areaTarget,
-        { ...PRESET_FILTER, monthFilter: mf },
-        p.label // 콘솔에 면적 필터 전/후 건수 로그
-      );
-      const id = presetId(p);
-      const info: ApartmentInfo = {
-        id,
-        name: p.label,
-        lawdCd: p.lawdCd,
-        area: p.areaTarget,
-        areaLabel: `전용 ${p.areaTarget}㎡`,
-        regionLabel: p.category,
-      };
-      return { preset: p, info, yearlyStats, manualPrice: manualPrices[id] };
-    });
-    setResults(next);
-  };
-
-  // 프리셋 지역 데이터 로드 (mf 모드에 필요한 연월만 조회; 이미 캐시된 건 건너뜀)
-  const loadData = async (force = false, mf: number | null = monthFilter) => {
-    setLoading(true);
-    try {
-      if (force) {
-        // 새로고침: 프리셋 지역의 캐시를 전부(연평균 범위) 제거 후 재조회
-        const ymList = buildYearMonthList(years);
-        for (const lawdCd of uniqueLawdCds) {
-          for (const ym of ymList) globalCache.delete(getCacheKey(lawdCd, ym.dealYmd));
-        }
-      }
-      setProgress({ current: 0, total: 100, label: '데이터 로딩 중...' });
-      await loadManyRegions(
-        uniqueLawdCds,
-        years,
-        globalCache,
-        (p) => {
-          const done = p.lastDoneLawdCd ? `${getRegionName(p.lastDoneLawdCd)} 완료` : '';
-          const loading = p.loadingLawdCds
-            .filter((cd) => cd !== p.lastDoneLawdCd)
-            .slice(0, 2)
-            .map(getRegionName);
-          const loadingTxt = loading.length ? `${loading.join(', ')} 조회 중...` : '';
-          const detail = [done, loadingTxt].filter(Boolean).join(' · ');
-          const pct = p.totalTasks ? Math.round((p.tasksDone / p.totalTasks) * 100) : 100;
-          setProgress({
-            current: pct,
-            total: 100,
-            label: `데이터 로딩 중 (${p.regionsDone}/${p.totalRegions} 지역)${detail ? ` — ${detail}` : ''}`,
-          });
-        },
-        { monthFilter: mf, concurrency: 8 }
-      );
-      recompute(mf);
-      loadedRef.current = true;
-    } finally {
-      setLoading(false);
-      setProgress({ current: 0, total: 0, label: '' });
-    }
-  };
-
-  // 탭 최초 진입 시 자동 조회
-  useEffect(() => {
-    if (!loadedRef.current) void loadData(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleMonthFilter = (mf: number | null) => {
-    setMonthFilter(mf);
-    if (!loadedRef.current) return;
-    // 해당 모드에 필요한 연월이 모두 캐시돼 있으면 네트워크 없이 즉시 재계산,
-    // 일부 누락(부분 실패 등) 시 그 월만 추가 로드.
-    const ymList = buildYearMonthList(years, mf);
-    const missing = uniqueLawdCds.some((cd) =>
-      ymList.some((ym) => !globalCache.has(getCacheKey(cd, ym.dealYmd)))
-    );
-    if (missing) void loadData(false, mf);
-    else recompute(mf);
-  };
-
-  const handleManualPrice = (id: string, price: number | undefined) => {
-    setManualPrices((prev) => ({ ...prev, [id]: price }));
-    setResults((prev) => prev.map((r) => (r.info.id === id ? { ...r, manualPrice: price } : r)));
-  };
 
   const handleBase = (id: string) => setBaseId((prev) => (prev === id ? '' : id));
 
@@ -249,7 +137,7 @@ const PresetComparePage: React.FC = () => {
                 <option key={m} value={m}>{m}월</option>
               ))}
             </select>
-            <button className="btn-secondary" onClick={() => loadData(true)} disabled={loading}>
+            <button className="btn-secondary" onClick={reload} disabled={loading}>
               🔄 새로고침
             </button>
           </div>

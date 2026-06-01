@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import TabNav, { TabKey } from './components/TabNav';
 import DirectComparePage from './components/DirectComparePage';
 import PresetComparePage from './components/PresetComparePage';
+import CompareWithPresetPage from './components/CompareWithPresetPage';
 import { getQueryYears } from './utils/apiClient';
 
 const App: React.FC = () => {
   const [tab, setTab] = useState<TabKey>('direct');
   const [presetMounted, setPresetMounted] = useState(false);
+  const [compareMounted, setCompareMounted] = useState(false);
   const years = getQueryYears();
 
   const handleTab = (t: TabKey) => {
     if (t === 'preset') setPresetMounted(true); // 최초 진입 시 마운트 → 자동 조회
+    if (t === 'compare') setCompareMounted(true);
     setTab(t);
   };
 
@@ -38,6 +41,11 @@ const App: React.FC = () => {
         {presetMounted && (
           <div className={tab === 'preset' ? '' : 'hidden'}>
             <PresetComparePage />
+          </div>
+        )}
+        {compareMounted && (
+          <div className={tab === 'compare' ? '' : 'hidden'}>
+            <CompareWithPresetPage />
           </div>
         )}
       </main>

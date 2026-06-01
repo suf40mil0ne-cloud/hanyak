@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type TabKey = 'direct' | 'preset';
+export type TabKey = 'direct' | 'preset' | 'compare';
 
 interface Props {
   active: TabKey;
@@ -10,6 +10,7 @@ interface Props {
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'direct', label: '🔍 직접 비교' },
   { key: 'preset', label: '⭐ 주요 아파트 시세' },
+  { key: 'compare', label: '🏠 주요 아파트와 비교' },
 ];
 
 const TabNav: React.FC<Props> = ({ active, onChange }) => {
