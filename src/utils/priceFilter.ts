@@ -73,7 +73,12 @@ export function filterAndCalcMonthly(
 
     const ar = parseFloat(String(r.excluUseAr));
     if (isNaN(ar)) return false;
-    if (Math.abs(ar - area) > (options.areaTolerance ?? 3)) return false; // 선택 면적 ±N㎡ (기본 3)
+    // areaTolerance 지정 시 ±N㎡ 범위 매칭(프리셋), 미지정 시 원본값 정확 매칭(직접 검색)
+    if (options.areaTolerance != null) {
+      if (Math.abs(ar - area) > options.areaTolerance) return false;
+    } else if (ar.toFixed(2) !== area.toFixed(2)) {
+      return false;
+    }
 
     if (parseInt(r.dealYear, 10) !== year) return false;
     if (parseInt(r.dealMonth, 10) !== month) return false;
@@ -161,13 +166,14 @@ export function calcYearlyStats(
       const records = dataMap.get(key);
       if (!records || records.length === 0) continue;
 
-      // 디버그: 명칭+면적(±tol㎡) 1차 매칭 건수 집계
+      // 디버그: 명칭+면적 1차 매칭 건수 집계 (필터와 동일한 매칭 규칙)
       if (debugLabel) {
-        const tol = options.areaTolerance ?? 3;
+        const tol = options.areaTolerance;
         rawTotal += records.filter((r) => {
           if (!r.aptNm || !matchFn(r.aptNm)) return false;
           const ar = parseFloat(String(r.excluUseAr));
-          return !isNaN(ar) && Math.abs(ar - area) <= tol;
+          if (isNaN(ar)) return false;
+          return tol != null ? Math.abs(ar - area) <= tol : ar.toFixed(2) === area.toFixed(2);
         }).length;
       }
 
@@ -191,10 +197,11 @@ export function calcYearlyStats(
   }
 
   if (debugLabel) {
-    const tol = options.areaTolerance ?? 3;
+    const areaDesc =
+      options.areaTolerance != null ? `${area}±${options.areaTolerance}㎡` : `${area.toFixed(2)}㎡(정확)`;
     const range = options.monthFilter !== null ? `${options.monthFilter}월` : '연평균';
     console.log(
-      `[면적필터] ${debugLabel} 전용 ${area}±${tol}㎡ (${range}) | 명칭+면적 매칭 ${rawTotal}건 → 이상거래/IQR 필터 후 ${finalTotal}건`
+      `[면적필터] ${debugLabel} 전용 ${areaDesc} (${range}) | 명칭+면적 매칭 ${rawTotal}건 → 이상거래/IQR 필터 후 ${finalTotal}건`
     );
   }
 
@@ -207,23 +214,23 @@ export function sqmToPyeong(sqm: number): number {
 }
 
 /**
- * 거래 면적 목록 → 드롭다운용 정수 ㎡ 목록.
- * 각 excluUseAr을 정수로 반올림한 뒤 중복을 제거해 오름차순 정렬한다.
- * 예: [57.37, 57.12, 84.99, 84.82, 150.27, 149.95] → [57, 85, 150]
- * (기존 5㎡ 단위 그룹핑이 일부 면적을 누락시키던 문제를 단순화)
+ * 거래 면적 목록 → 드롭다운용 원본 ㎡ 목록 (반올림 없음).
+ * 각 excluUseAr을 소수점 둘째자리(toFixed(2)) 기준으로 중복 제거 후 오름차순 정렬한다.
+ * 예: [57.37, 57.12, 84.99, 84.82] → [57.12, 57.37, 84.82, 84.99]
+ * (Math.round로 인한 면적 중복/누락 문제 제거 — API 원본값 그대로 사용)
  */
 export function distinctAreas(areas: number[]): number[] {
-  const set = new Set<number>();
+  const set = new Set<string>();
   for (const a of areas) {
-    if (!isNaN(a)) set.add(Math.round(a));
+    if (!isNaN(a)) set.add(a.toFixed(2));
   }
-  return Array.from(set).sort((a, b) => a - b);
+  return Array.from(set, (s) => parseFloat(s)).sort((a, b) => a - b);
 }
 
-/** 면적 라벨 생성 (예: "84㎡ (약 33평)") */
+/** 면적 라벨 생성 (예: "84.99㎡ (약 26평)") — 원본값 그대로, 평은 ㎡×0.3025 반올림 */
 export function makeAreaLabel(area: number): string {
   const pyeong = sqmToPyeong(area);
-  return `${Math.round(area)}㎡ (약 ${pyeong}평)`;
+  return `${area.toFixed(2)}㎡ (약 ${pyeong}평)`;
 }
 
 /** 부분 일치 아파트 검색 옵션 (이름 + 거래 건수) */

@@ -52,7 +52,7 @@ const PriceChart: React.FC<Props> = ({ results, baseId }) => {
     const point: Record<string, number | string | null> = { year: y };
     for (const data of results) {
       const price = getEffectivePrice(data, y);
-      const key = `${data.info.name}_${data.info.area.toFixed(0)}`;
+      const key = `${data.info.name}_${data.info.area.toFixed(2)}`;
 
       if (mode === 'price') {
         point[key] = price;
@@ -143,7 +143,7 @@ const PriceChart: React.FC<Props> = ({ results, baseId }) => {
             <ReferenceLine y={100} stroke="#9ca3af" strokeDasharray="4 4" label={{ value: '100', fill: '#9ca3af', fontSize: 11 }} />
           )}
           {results.map((data, i) => {
-            const key = `${data.info.name}_${data.info.area.toFixed(0)}`;
+            const key = `${data.info.name}_${data.info.area.toFixed(2)}`;
             const label = `${data.info.name} ${data.info.areaLabel}`;
             const isBase = data.info.id === baseId;
             const color = COLORS[i % COLORS.length];
