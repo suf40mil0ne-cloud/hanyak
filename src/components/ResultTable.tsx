@@ -8,34 +8,62 @@ interface Props {
   onManualPriceChange: (id: string, price: number | undefined) => void;
 }
 
-function formatPrice(price: number | null | undefined): string {
-  if (price == null) return '-';
-  return price.toFixed(2) + '억';
-}
-
-function calcIndex(comparePrice: number | null | undefined, basePrice: number | null | undefined): string {
-  if (!comparePrice || !basePrice || basePrice === 0) return '-';
-  return Math.round((comparePrice / basePrice) * 100).toString();
+/** 지수 셀 색상: 100=파랑 bold, >110=빨강, <90=초록, 90~110=회색 */
+function idxClass(idx: number | null): string {
+  if (idx == null) return 'text-gray-300';
+  if (idx === 100) return 'text-blue-600 font-bold';
+  if (idx > 110) return 'text-red-500';
+  if (idx < 90) return 'text-green-500';
+  return 'text-gray-500';
 }
 
 const ResultTable: React.FC<Props> = ({ results, baseId, onManualPriceChange }) => {
   const years = getQueryYears();
+  const curYear = years[years.length - 1];
+  const pastYears = years.slice(0, -1);
   const isMultiple = results.length >= 2;
   const baseResult = results.find((r) => r.info.id === baseId) ?? results[0];
 
   if (results.length === 0) return null;
 
-  const getEffectivePrice = (data: ApartmentData, year: number): number | null => {
-    const curYear = new Date().getFullYear();
-    if (year === curYear && data.manualPrice != null && !isNaN(data.manualPrice)) {
-      return data.manualPrice;
-    }
+  // 지수 컬럼은 비교 대상이 2개 이상일 때만 노출
+  const showIdx = isMultiple;
+  const idxColCount = showIdx ? 1 : 0;
+  const tableWidth =
+    160 + pastYears.length * (75 + (showIdx ? 45 : 0)) + (75 + (showIdx ? 45 : 0)) + (85 + (showIdx ? 45 : 0));
+
+  const effectivePrice = (data: ApartmentData, year: number): number | null => {
+    if (year === curYear && data.manualPrice != null && !isNaN(data.manualPrice)) return data.manualPrice;
     return data.yearlyStats[year]?.avgPrice ?? null;
   };
 
+  const calcIdx = (price: number | null, basePrice: number | null): number | null =>
+    showIdx && price != null && basePrice != null && basePrice !== 0
+      ? Math.round((price / basePrice) * 100)
+      : null;
+
+  const priceTd = (price: number | null, count: number) => (
+    <td className="px-2 py-1 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle whitespace-nowrap">
+      {price != null ? (
+        <>
+          <span className="text-[13px] font-bold text-gray-800">{price.toFixed(2)}억</span>
+          {count > 0 && <span className="text-[10px] text-gray-400 ml-1">(실거래 {count})</span>}
+        </>
+      ) : (
+        <span className="text-[13px] text-gray-300">-</span>
+      )}
+    </td>
+  );
+
+  const idxTd = (idx: number | null) => (
+    <td className={`px-2 py-1 border border-gray-200 text-center align-middle text-[11px] ${idxClass(idx)}`}>
+      {idx == null ? '-' : idx}
+    </td>
+  );
+
   return (
-    <div className="card">
-      <h2 className="text-base font-semibold text-gray-800 mb-3">
+    <div className="card p-0">
+      <h2 className="text-base font-semibold text-gray-800 px-4 pt-3 pb-2">
         실거래가 결과
         {isMultiple && baseResult && (
           <span className="ml-2 text-sm text-blue-600 font-normal">
@@ -45,169 +73,148 @@ const ResultTable: React.FC<Props> = ({ results, baseId, onManualPriceChange }) 
       </h2>
 
       <div className="overflow-x-auto">
-        <table className="text-sm w-full border-collapse min-w-max">
+        <table className="text-[12px] border-collapse" style={{ tableLayout: 'fixed', width: `${tableWidth}px` }}>
+          <colgroup>
+            <col style={{ width: '160px' }} />
+            {pastYears.map((y) => (
+              <React.Fragment key={y}>
+                <col style={{ width: '75px' }} />
+                {showIdx && <col style={{ width: '45px' }} />}
+              </React.Fragment>
+            ))}
+            {/* 2026 실거래 */}
+            <col style={{ width: '75px' }} />
+            {showIdx && <col style={{ width: '45px' }} />}
+            {/* 2026 입력 */}
+            <col style={{ width: '85px' }} />
+            {showIdx && <col style={{ width: '45px' }} />}
+          </colgroup>
+
           <thead>
-            {/* 1단: 연도 (시세+지수를 colSpan으로 묶음) */}
+            {/* 1단: 연도 */}
             <tr className="bg-gray-100 text-gray-700">
               <th
                 rowSpan={2}
-                className="text-left px-3 py-2 font-semibold border border-gray-200 sticky left-0 bg-gray-100 z-10 whitespace-nowrap align-bottom"
+                className="text-left px-2 py-1 font-semibold border border-gray-200 sticky left-0 top-0 bg-gray-100 z-30 whitespace-nowrap align-bottom"
               >
                 아파트
               </th>
-              {years.map((y) => {
-                const isCurrentYear = y === new Date().getFullYear();
-                return (
-                  <th
-                    key={y}
-                    colSpan={isMultiple ? 2 : 1}
-                    className="px-3 py-2 font-semibold border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap"
-                  >
-                    {y}년{isCurrentYear ? ' (입력)' : ''}
-                  </th>
-                );
-              })}
+              {pastYears.map((y) => (
+                <th
+                  key={y}
+                  colSpan={1 + idxColCount}
+                  className="px-1 py-1 font-semibold border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap sticky top-0 bg-gray-100 z-20"
+                >
+                  {y}
+                </th>
+              ))}
+              <th
+                colSpan={1 + idxColCount}
+                className="px-1 py-1 font-semibold border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap sticky top-0 bg-gray-100 z-20"
+              >
+                {curYear} 실거래
+              </th>
+              <th
+                colSpan={1 + idxColCount}
+                className="px-1 py-1 font-semibold border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap sticky top-0 bg-gray-100 z-20"
+              >
+                {curYear} 현재시세
+              </th>
             </tr>
-            {/* 2단: 시세 / 지수 서브헤더 */}
-            <tr className="bg-gray-50 text-gray-500 text-xs">
-              {years.map((y) => {
-                const isCurrentYear = y === new Date().getFullYear();
-                return isMultiple ? (
-                  <React.Fragment key={y}>
-                    <th className="px-3 py-1.5 font-medium border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap">
-                      시세(억)
-                    </th>
-                    <th className="px-3 py-1.5 font-medium border border-gray-200 text-center whitespace-nowrap bg-blue-50 text-blue-700">
+            {/* 2단: 시세 / 지수 */}
+            <tr className="bg-gray-100 text-gray-500">
+              {pastYears.map((y) => (
+                <React.Fragment key={y}>
+                  <th className="px-1 py-0.5 font-medium border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap sticky top-[26px] bg-gray-100 z-20">
+                    시세
+                  </th>
+                  {showIdx && (
+                    <th className="px-1 py-0.5 font-medium border border-gray-200 text-center sticky top-[26px] bg-gray-100 z-20">
                       지수
                     </th>
-                  </React.Fragment>
-                ) : (
-                  <th
-                    key={y}
-                    className="px-3 py-1.5 font-medium border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap"
-                  >
-                    {isCurrentYear ? '입력(억)' : '시세(억)'}
-                  </th>
-                );
-              })}
+                  )}
+                </React.Fragment>
+              ))}
+              {/* 2026 실거래 */}
+              <th className="px-1 py-0.5 font-medium border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap sticky top-[26px] bg-gray-100 z-20">
+                시세
+              </th>
+              {showIdx && (
+                <th className="px-1 py-0.5 font-medium border border-gray-200 text-center sticky top-[26px] bg-gray-100 z-20">
+                  지수
+                </th>
+              )}
+              {/* 2026 입력 */}
+              <th className="px-1 py-0.5 font-medium border border-gray-200 border-l-2 border-l-gray-300 text-center whitespace-nowrap sticky top-[26px] bg-gray-100 text-blue-700 z-20">
+                입력
+              </th>
+              {showIdx && (
+                <th className="px-1 py-0.5 font-medium border border-gray-200 text-center sticky top-[26px] bg-gray-100 z-20">
+                  지수
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
             {results.map((data) => {
               const isBase = data.info.id === baseId;
               const rowBg = isBase && isMultiple ? 'bg-blue-50' : 'bg-white';
+              const api2026 = data.yearlyStats[curYear]?.avgPrice ?? null;
+              const baseApi2026 = baseResult?.yearlyStats[curYear]?.avgPrice ?? null;
+              const eff2026 = effectivePrice(data, curYear);
+              const baseEff2026 = baseResult ? effectivePrice(baseResult, curYear) : null;
 
               return (
-                <tr key={data.info.id} className={`${rowBg} hover:bg-yellow-50 transition-colors`}>
+                <tr key={data.info.id} className={`${rowBg} hover:bg-gray-50 transition-colors`}>
                   {/* 아파트명 */}
-                  <td className={`px-3 py-2 border border-gray-200 sticky left-0 z-10 ${rowBg} whitespace-nowrap`}>
-                    <div className="font-medium text-gray-800 flex items-center gap-1">
-                      {isBase && isMultiple && (
-                        <span className="text-yellow-500 text-base leading-none">★</span>
-                      )}
+                  <td className={`px-2 py-1 border border-gray-200 sticky left-0 z-10 ${rowBg} whitespace-nowrap`}>
+                    <div className="font-medium text-gray-800 text-[12px] flex items-center gap-1">
+                      {isBase && isMultiple && <span className="text-blue-600 leading-none text-[11px]">★</span>}
                       {data.info.name}
                     </div>
-                    <div className="text-xs text-gray-500 mt-0.5">{data.info.areaLabel}</div>
-                    <div className="text-xs text-gray-400">{data.info.regionLabel}</div>
+                    <div className="text-[10px] text-gray-400">
+                      {data.info.areaLabel} · {data.info.regionLabel}
+                    </div>
                   </td>
 
-                  {years.map((y) => {
-                    const curYear = new Date().getFullYear();
-                    const isCurrentYear = y === curYear;
+                  {/* 이전 연도 실거래 */}
+                  {pastYears.map((y) => {
                     const ys = data.yearlyStats[y];
-                    const apiPrice = ys?.avgPrice ?? null;
-                    const effectivePrice = getEffectivePrice(data, y);
-                    const basePrice = baseResult ? getEffectivePrice(baseResult, y) : null;
-                    const idx = isMultiple ? calcIndex(effectivePrice, basePrice) : null;
-
-                    return isMultiple ? (
+                    const price = ys?.avgPrice ?? null;
+                    const basePrice = baseResult?.yearlyStats[y]?.avgPrice ?? null;
+                    return (
                       <React.Fragment key={y}>
-                        {/* 시세 셀 */}
-                        <td className="px-3 py-2 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle">
-                          {isCurrentYear ? (
-                            <div className="flex flex-col items-center gap-1">
-                              {apiPrice != null && (
-                                <span className="text-xs text-gray-400">
-                                  API: {apiPrice.toFixed(2)}억
-                                </span>
-                              )}
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                placeholder={apiPrice != null ? apiPrice.toFixed(2) : '입력'}
-                                value={data.manualPrice ?? ''}
-                                onChange={(e) => {
-                                  const v = e.target.value;
-                                  onManualPriceChange(data.info.id, v === '' ? undefined : parseFloat(v));
-                                }}
-                                className="input-base w-20 text-center text-xs"
-                              />
-                            </div>
-                          ) : (
-                            <div>
-                              <div className={`font-medium ${apiPrice != null ? 'text-gray-800' : 'text-gray-400'}`}>
-                                {formatPrice(apiPrice)}
-                              </div>
-                              {ys && ys.count > 0 && (
-                                <div className="text-xs text-gray-400 mt-0.5">n={ys.count}</div>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        {/* 지수 셀 */}
-                        <td className="px-3 py-2 border border-gray-200 text-center bg-blue-50 align-middle">
-                          <span
-                            className={`font-semibold ${
-                              idx === '-'
-                                ? 'text-gray-400'
-                                : isBase
-                                ? 'text-blue-700'
-                                : parseInt(idx || '0') >= 100
-                                ? 'text-orange-600'
-                                : 'text-green-700'
-                            }`}
-                          >
-                            {isBase && idx !== '-' ? '100' : idx}
-                          </span>
-                        </td>
+                        {priceTd(price, ys?.count ?? 0)}
+                        {showIdx && idxTd(calcIdx(price, basePrice))}
                       </React.Fragment>
-                    ) : (
-                      /* 단일 아파트: 시세만 */
-                      <td key={y} className="px-3 py-2 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle">
-                        {isCurrentYear ? (
-                          <div className="flex flex-col items-center gap-1">
-                            {apiPrice != null && (
-                              <span className="text-xs text-gray-400">
-                                API: {apiPrice.toFixed(2)}억
-                              </span>
-                            )}
-                            <input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              placeholder={apiPrice != null ? apiPrice.toFixed(2) : '직접입력'}
-                              value={data.manualPrice ?? ''}
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                onManualPriceChange(data.info.id, v === '' ? undefined : parseFloat(v));
-                              }}
-                              className="input-base w-24 text-center text-sm"
-                            />
-                          </div>
-                        ) : (
-                          <div>
-                            <div className={`font-medium ${apiPrice != null ? 'text-gray-800' : 'text-gray-400'}`}>
-                              {formatPrice(apiPrice)}
-                            </div>
-                            {ys && ys.count > 0 && (
-                              <div className="text-xs text-gray-400 mt-0.5">n={ys.count}</div>
-                            )}
-                          </div>
-                        )}
-                      </td>
                     );
                   })}
+
+                  {/* 2026 실거래 */}
+                  {priceTd(api2026, data.yearlyStats[curYear]?.count ?? 0)}
+                  {showIdx && idxTd(calcIdx(api2026, baseApi2026))}
+
+                  {/* 2026 현재시세(입력) */}
+                  <td className="px-1 py-1 border border-gray-200 border-l-2 border-l-gray-300 text-center align-middle">
+                    <div className="flex flex-col items-center gap-0.5">
+                      {api2026 != null && (
+                        <span className="text-[9px] text-gray-400 leading-none">API {api2026.toFixed(2)}억</span>
+                      )}
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder={api2026 != null ? api2026.toFixed(2) : '입력'}
+                        value={data.manualPrice ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          onManualPriceChange(data.info.id, v === '' ? undefined : parseFloat(v));
+                        }}
+                        className="input-base h-6 w-full text-center text-[12px] px-1 py-0"
+                      />
+                    </div>
+                  </td>
+                  {showIdx && idxTd(calcIdx(eff2026, baseEff2026))}
                 </tr>
               );
             })}
@@ -215,8 +222,8 @@ const ResultTable: React.FC<Props> = ({ results, baseId, onManualPriceChange }) 
         </table>
       </div>
 
-      <p className="text-xs text-gray-400 mt-3">
-        * 지수는 기준 아파트 = 100 기준. 숫자가 클수록 기준 아파트보다 비쌈. 현재 연도 셀에 직접 입력 시 지수 즉시 재계산.
+      <p className="text-[11px] text-gray-400 px-4 py-2">
+        * 지수는 기준 아파트 = 100. {curYear}년은 실거래(API)와 현재시세(직접 입력)를 분리 표시하며, 입력 시 해당 지수가 즉시 재계산됩니다.
       </p>
     </div>
   );
