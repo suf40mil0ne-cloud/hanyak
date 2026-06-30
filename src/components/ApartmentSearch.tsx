@@ -20,7 +20,8 @@ const ApartmentSearch: React.FC<Props> = ({
   baseId,
   onBaseChange,
 }) => {
-  const [searchName, setSearchName] = useState('');
+  const [umdList, setUmdList] = useState<string[]>([]);
+  const [selectedUmd, setSelectedUmd] = useState('');
   const [aptList, setAptList] = useState<AptOption[]>([]);
   const [selectedApt, setSelectedApt] = useState('');
   const [areaOptions, setAreaOptions] = useState<number[]>([]);
@@ -31,7 +32,8 @@ const ApartmentSearch: React.FC<Props> = ({
   const [searchError, setSearchError] = useState('');
   const [rawRecords, setRawRecords] = useState<RawTradeRecord[]>([]);
 
-  const handleSearch = async () => {
+  // 시군구 최근 2개월 데이터를 1회 조회(globalCache 재사용) → 동 목록 추출. 이후 동/아파트 선택은 재호출 없이 필터링.
+  const handleLoad = async () => {
     if (!region?.lawdCd) {
       setSearchError('먼저 지역을 선택해주세요.');
       return;
@@ -41,41 +43,43 @@ const ApartmentSearch: React.FC<Props> = ({
     setScanMsg('');
     setAreaMsg('');
     setSearchError('');
+    setUmdList([]);
+    setSelectedUmd('');
     setAptList([]);
     setSelectedApt('');
     setAreaOptions([]);
     setSelectedArea(null);
 
     try {
-      const records = await fetchAreaScanData(region.lawdCd, (p) => {
-        setScanMsg(
-          p.anyFetch
-            ? `평형 조회 중... (24개월 데이터 수집 중 ${p.done}/${p.total})`
-            : '평형 조회 중... (캐시 활용 중)'
-        );
-      });
+      const records = await fetchAreaScanData(region.lawdCd, () => setScanMsg('아파트 목록 불러오는 중...'), 2);
       setRawRecords(records);
 
       if (records.length === 0) {
-        setSearchError('최근 해당 지역의 거래 내역이 없습니다. 지역을 확인해주세요.');
+        setSearchError('해당 지역에 거래 데이터가 없습니다');
         return;
       }
 
-      // 부분 일치 검색 + 거래 건수 정렬
-      const options = buildAptOptions(records, searchName);
-      setAptList(options);
-
-      if (options.length === 0) {
-        setSearchError(
-          '검색 결과가 없습니다.\n※ 국토부 API 아파트명은 네이버와 다를 수 있습니다.\n더 짧게 입력해보세요. (예: \'갈산이안\' → \'갈산\' 또는 \'이안\')'
-        );
-      }
+      // umdNm(법정동) 목록: 중복 제거 + 가나다순
+      const umds = Array.from(
+        new Set(records.map((r) => r.umdNm?.trim()).filter((u): u is string => !!u))
+      ).sort((a, b) => a.localeCompare(b, 'ko'));
+      setUmdList(umds);
     } catch (e: unknown) {
       setSearchError((e as Error).message || '조회 중 오류가 발생했습니다.');
     } finally {
       setSearching(false);
       setScanMsg('');
     }
+  };
+
+  // 동 선택 → 재호출 없이 보관된 데이터에서 해당 동 아파트만 필터링(거래건수 내림차순)
+  const handleUmdSelect = (umd: string) => {
+    setSelectedUmd(umd);
+    setSelectedApt('');
+    setSelectedArea(null);
+    setAreaOptions([]);
+    setAreaMsg('');
+    setAptList(umd ? buildAptOptions(rawRecords.filter((r) => r.umdNm?.trim() === umd), '') : []);
   };
 
   const handleAptSelect = (name: string) => {
@@ -131,26 +135,14 @@ const ApartmentSearch: React.FC<Props> = ({
     <div className="card">
       <h2 className="text-base font-semibold text-gray-800 mb-3">아파트 추가</h2>
 
-      {/* 검색 폼 */}
+      {/* 1단계: 지역의 아파트 불러오기 (최근 2개월, globalCache 재사용) */}
       <div className="flex flex-wrap gap-2 items-end mb-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 font-medium">아파트명 검색</label>
-          <input
-            type="text"
-            className="input-base w-60"
-            placeholder="아파트명 일부 입력 (예: 갈산, 래미안)"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-        </div>
-
         <button
-          className="btn-primary h-9"
-          onClick={handleSearch}
+          className="btn-primary h-9 w-full sm:w-auto"
+          onClick={handleLoad}
           disabled={!region?.lawdCd || searching}
         >
-          {searching ? '조회 중...' : '아파트 조회'}
+          {searching ? '불러오는 중...' : '이 지역 아파트 불러오기'}
         </button>
 
         {searching && scanMsg && (
@@ -165,15 +157,34 @@ const ApartmentSearch: React.FC<Props> = ({
         <p className="text-red-500 text-sm mb-3 whitespace-pre-line">{searchError}</p>
       )}
 
-      {/* 아파트 / 면적 선택 */}
-      {aptList.length > 0 && (
+      {/* 2·3단계: 동 선택 → 아파트 선택 (API 재호출 없이 필터링) */}
+      {umdList.length > 0 && (
         <div className="flex flex-wrap gap-2 items-end mb-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">아파트 선택 ({aptList.length}개)</label>
+            <label className="text-xs text-gray-500 font-medium">동 선택 (총 {umdList.length}개 동)</label>
             <select
-              className="select-base w-64"
+              className="select-base w-full sm:w-44"
+              value={selectedUmd}
+              onChange={(e) => handleUmdSelect(e.target.value)}
+            >
+              <option value="">-- 동 선택 --</option>
+              {umdList.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 font-medium">
+              아파트 선택{selectedUmd && ` (${aptList.length}개)`}
+            </label>
+            <select
+              className="select-base w-full sm:w-64"
               value={selectedApt}
               onChange={(e) => handleAptSelect(e.target.value)}
+              disabled={!selectedUmd}
             >
               <option value="">-- 선택 --</option>
               {aptList.map((o) => (
