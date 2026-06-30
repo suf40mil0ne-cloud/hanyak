@@ -1,0 +1,31 @@
+name: Refresh preset cache
+
+# 매일 한국시간 00:00 (UTC 15:00) 프리셋(탭2·탭3) 시세를 수집해 KV에 적재.
+on:
+  schedule:
+    - cron: '0 15 * * *'
+  workflow_dispatch: # 수동 실행 허용
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    name: Collect & store preset data
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Collect preset data and push to KV
+        env:
+          REFRESH_KEY: ${{ secrets.REFRESH_KEY }}
+          # 기본 https://hanyak.pages.dev. 커스텀 도메인이면 레포 variables 에 SITE_URL 설정.
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: npx tsx scripts/refresh-preset.ts

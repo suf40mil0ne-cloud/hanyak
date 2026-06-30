@@ -3,7 +3,7 @@ import { PRESET_CATEGORIES } from '../data/presetApartments';
 import { ApartmentData, ApartmentInfo, FilterOptions } from '../types';
 import { loadAllData, getQueryYears, globalCache } from '../utils/apiClient';
 import { calcYearlyStats, exactMatcher } from '../utils/priceFilter';
-import { usePresetData } from '../hooks/usePresetData';
+import { usePresetData, formatUpdatedAt } from '../hooks/usePresetData';
 import MyApartmentSetup from './MyApartmentSetup';
 import AnalysisCard from './AnalysisCard';
 
@@ -27,7 +27,7 @@ const CompareWithPresetPage: React.FC = () => {
   const curYear = years[years.length - 1];
   const pastYears = years.slice(0, -1);
 
-  const { monthFilter, results, loading, progress, handleMonthFilter, handleManualPrice, reload } =
+  const { monthFilter, results, loading, progress, updatedAt, handleMonthFilter, handleManualPrice, reload } =
     usePresetData();
 
   // 기준(내) 아파트
@@ -189,6 +189,7 @@ const CompareWithPresetPage: React.FC = () => {
                 ? '모든 지수는 내 아파트 기준(=100) · 행을 클릭하면 아래에서 AI 분석을 확인할 수 있습니다.'
                 : '기준 아파트를 설정하면 지수와 AI 분석이 표시됩니다.'}
             </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">🕛 마지막 업데이트: {formatUpdatedAt(updatedAt)} (매일 자정 갱신)</p>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-xs text-gray-500 font-medium">월 필터</label>

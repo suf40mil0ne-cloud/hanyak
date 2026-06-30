@@ -1,3 +1,10 @@
 name = "apt-price-compare"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-07-18"
+
+# 프리셋(탭2·탭3) 캐시 저장소. 매일 자정 GitHub Actions가 /api/refresh로 수집 결과를 적재하고,
+# /api/preset-data 가 이 KV를 즉시 서빙한다. (탭1 직접비교는 실시간 /api/apt-trade 유지)
+# ※ Git 연동 배포 시에는 Pages 대시보드 > Settings > Functions > KV bindings 에도 동일 바인딩 추가 필요.
+[[kv_namespaces]]
+binding = "PRESET_DATA"
+id = "a6818ce8125b40ef9a36d5730743e493"

@@ -53,6 +53,28 @@ npm run dev                # http://localhost:5173, /api 는 :8788 로 프록시
 npx wrangler pages dev dist --port 8788
 ```
 
+> **로컬 KV 테스트**: `npx wrangler pages dev dist`(또는 `dev:pages`)로 띄우면 `wrangler.toml`의 `PRESET_DATA` 바인딩이 로컬 KV로 자동 생성된다 — `SITE_URL=http://localhost:8788 REFRESH_KEY=devkey npx tsx scripts/refresh-preset.ts` 로 시드한 뒤 `/api/preset-data` 를 확인한다(이때 로컬 서버 env에 `REFRESH_KEY=devkey` 필요).
+
+## 프리셋 캐시 (탭2·탭3 — 매일 자정 자동 갱신)
+
+탭2(주요 아파트 시세)·탭3(주요 아파트와 비교)는 26개 지역을 실시간 조회하지 않고, **매일 자정 미리 수집해 KV에 저장한 데이터를 즉시 서빙**한다. (탭1 직접 비교는 임의 아파트 선택이라 실시간 `/api/apt-trade` 유지)
+
+```
+[GitHub Actions cron 0 15 * * * (KST 00:00)]
+  → scripts/refresh-preset.ts : 전 지역×5개년을 /api/apt-trade 로 수집 + 프리셋 prefix 필터
+  → POST /api/refresh (x-refresh-key) : KV("preset-data")에 { updatedAt, data } 적재
+[브라우저] GET /api/preset-data → KV 즉시 반환 → 프론트가 priceFilter/IQR 로 집계(기존 로직 재사용)
+```
+
+집계(직거래·법인·계약해제·IQR·면적·월필터)는 전부 기존 `priceFilter.ts`가 클라이언트에서 그대로 수행한다(새 알고리즘 없음). KV에는 프리셋 aptNm으로 1차 필터된 원본 거래 레코드만 저장된다.
+
+### 배포 설정(1회)
+
+1. KV 네임스페이스 생성 후 `wrangler.toml`의 `id` 교체: `npx wrangler kv namespace create PRESET_DATA`
+2. Pages 대시보드 > Settings > Functions: **KV binding** `PRESET_DATA` + **환경변수** `REFRESH_KEY`(임의 비밀값) 추가
+3. GitHub 레포 Secrets에 동일한 `REFRESH_KEY` 추가(커스텀 도메인이면 Variables에 `SITE_URL`도). 워크플로: `.github/workflows/refresh-preset.yml`
+4. 최초 1회는 Actions 탭에서 *Refresh preset cache* 를 수동 실행(`workflow_dispatch`)해 KV를 채운다.
+
 ## 빌드 & 배포
 
 ```bash

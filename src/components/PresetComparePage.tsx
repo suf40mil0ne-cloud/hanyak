@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { PRESET_CATEGORIES } from '../data/presetApartments';
 import { ApartmentData } from '../types';
 import { getQueryYears } from '../utils/apiClient';
-import { usePresetData, PresetResult } from '../hooks/usePresetData';
+import { usePresetData, PresetResult, formatUpdatedAt } from '../hooks/usePresetData';
 import PriceChart from './PriceChart';
 
 /** 지수 셀 색상: 100=파랑 bold, >110=빨강, <90=초록, 90~110=회색 */
@@ -19,7 +19,7 @@ const PresetComparePage: React.FC = () => {
   const curYear = years[years.length - 1];
   const pastYears = years.slice(0, -1); // 2026 이전 연도 (실거래 단일 컬럼)
 
-  const { monthFilter, results, loading, progress, handleMonthFilter, handleManualPrice, reload } =
+  const { monthFilter, results, loading, progress, updatedAt, handleMonthFilter, handleManualPrice, reload } =
     usePresetData();
 
   const [baseId, setBaseId] = useState<string>(''); // '' = 기준 없음
@@ -124,6 +124,7 @@ const PresetComparePage: React.FC = () => {
             <p className="text-xs text-gray-500 mt-0.5">
               국평(전용 84㎡) · 직거래/법인/이상치 자동 제외 · {curYear}년 실거래/현재시세 분리 · 기준 선택 시 지수 표시
             </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">🕛 마지막 업데이트: {formatUpdatedAt(updatedAt)} (매일 자정 갱신)</p>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-xs text-gray-500 font-medium">월 필터</label>
