@@ -111,7 +111,7 @@ const AnalysisCard: React.FC<Props> = ({ baseData, compareData, years }) => {
 
         {/* 섹션 2: 지수 변화 분석 */}
         <section>
-          <h4 className="text-[13px] font-semibold text-gray-700 mb-2">📈 지수 변화 분석 (내 아파트=100)</h4>
+          <h4 className="text-[13px] font-semibold text-gray-700 mb-2">📈 지수 변화 분석 (비교 아파트=100)</h4>
           <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
             {indexSeries.map((p, i) => (
               <React.Fragment key={p.year}>

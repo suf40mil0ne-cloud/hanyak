@@ -14,7 +14,7 @@ export interface AptSeries {
   avgCount: number; // 데이터 있는 연도의 평균 실거래 건수
 }
 
-/** 비교 아파트의 기준 아파트 대비 지수 (기준=100) */
+/** 내 아파트의 비교 아파트(기준=100) 대비 지수 */
 export interface IndexPoint {
   year: number;
   index: number | null;
@@ -25,7 +25,7 @@ export type Trend = 'up' | 'down' | 'flat';
 export interface AnalysisResult {
   base: AptSeries; // 내 아파트
   compare: AptSeries; // 비교 아파트
-  indexSeries: IndexPoint[]; // 비교 아파트의 기준 대비 지수 추이
+  indexSeries: IndexPoint[]; // 내 아파트의 비교 아파트(기준=100) 대비 지수 추이
   trend: Trend; // 전체 추세 (연평균 지수 변화량 기준)
   avgSlope: number; // 연평균 지수 변화량 ((최근 - 첫) / 연도 간격)
   trendLabel: string; // 📈/📉/➡️ 한 줄 라벨
@@ -78,7 +78,7 @@ function buildSeries(data: ApartmentData, years: number[], curYear: number): Apt
 
 /**
  * 규칙 기반 비교 분석 생성.
- * base = 내 아파트(기준=100), compare = 비교 아파트.
+ * base = 내 아파트(분석 대상), compare = 비교 아파트(기준=100).
  */
 export function analyzeComparison(
   baseData: ApartmentData,
@@ -89,11 +89,11 @@ export function analyzeComparison(
   const base = buildSeries(baseData, years, curYear);
   const compare = buildSeries(compareData, years, curYear);
 
-  // 비교 아파트의 기준 대비 지수 추이
+  // 내 아파트의 비교 아파트(기준=100) 대비 지수 추이
   const indexSeries: IndexPoint[] = years.map((year) => {
     const bp = effectivePrice(baseData, year, curYear);
     const cp = effectivePrice(compareData, year, curYear);
-    const index = bp != null && cp != null && bp !== 0 ? Math.round((cp / bp) * 100) : null;
+    const index = bp != null && cp != null && cp !== 0 ? Math.round((bp / cp) * 100) : null;
     return { year, index };
   });
 
@@ -178,7 +178,7 @@ function analyzeIndexTrend(validIdx: { year: number; index: number }[]): TrendIn
   else if (avgSlope <= -10) trend = 'down';
 
   const trendLabel =
-    trend === 'up' ? '📈 격차 확대 추세' : trend === 'down' ? '📉 격차 축소 추세' : '➡️ 비슷한 흐름 유지';
+    trend === 'up' ? '📈 내 아파트 상대적 강세' : trend === 'down' ? '📉 내 아파트 상대적 약세' : '➡️ 비슷한 흐름 유지';
 
   // 정점/저점: 최댓/최솟값이 "중간" 연도(첫·마지막 제외)이고 마지막과 10 이상 벌어진 경우만
   // (단조 추세에서 첫 연도가 극값으로 잡혀 "정점 후 조정"이 잘못 붙는 것을 방지)
@@ -204,9 +204,9 @@ function analyzeIndexTrend(validIdx: { year: number; index: number }[]): TrendIn
   const slopeTxt = `${avgSlope >= 0 ? '+' : ''}${avgSlope}`;
   let trendVerdict =
     trend === 'up'
-      ? `첫 데이터 연도(지수 ${first.index}) 대비 최근(${last.index})이 연평균 약 ${slopeTxt}씩 올라, 전반적으로 격차가 확대되는 추세입니다.`
+      ? `첫 데이터 연도(지수 ${first.index}) 대비 최근(${last.index})이 연평균 약 ${slopeTxt}씩 올라, 전반적으로 내 아파트가 비교 아파트 대비 상대적으로 강세를 보이는 추세입니다.`
       : trend === 'down'
-      ? `첫 데이터 연도(지수 ${first.index}) 대비 최근(${last.index})이 연평균 약 ${slopeTxt}씩 내려, 전반적으로 격차가 축소되는 추세입니다.`
+      ? `첫 데이터 연도(지수 ${first.index}) 대비 최근(${last.index})이 연평균 약 ${slopeTxt}씩 내려, 전반적으로 내 아파트가 비교 아파트 대비 상대적으로 약세를 보이는 추세입니다.`
       : `첫 데이터 연도(지수 ${first.index})와 최근(${last.index})이 비슷해(연평균 ${slopeTxt}), 두 아파트가 비슷한 흐름을 유지하고 있습니다.`;
 
   // 정점/저점 → 최근 반전을 우선 서술 (없으면 최근 2개년 단서)
@@ -216,9 +216,9 @@ function analyzeIndexTrend(validIdx: { year: number; index: number }[]): TrendIn
   } else if (trough) {
     reversalNote = ` 다만 ${trough.year}년 저점(${trough.index}) 이후 ${last.year}년(${last.index})에 ${recentSmall ? '소폭' : '크게'} 반등하는 모습입니다.`;
   } else if (trend === 'up' && recentDelta < 0) {
-    reversalNote = ` 다만 최근 들어 ${recentSmall ? '소폭 ' : ''}좁혀지고 있습니다.`;
+    reversalNote = ` 다만 최근 들어 ${recentSmall ? '소폭 ' : ''}주춤하는 모습입니다.`;
   } else if (trend === 'down' && recentDelta > 0) {
-    reversalNote = ` 다만 최근 들어 ${recentSmall ? '소폭 ' : ''}다시 벌어지고 있습니다.`;
+    reversalNote = ` 다만 최근 들어 ${recentSmall ? '소폭 ' : ''}반등하는 모습입니다.`;
   }
   trendVerdict += reversalNote;
 
@@ -226,7 +226,7 @@ function analyzeIndexTrend(validIdx: { year: number; index: number }[]): TrendIn
   const narrated = new Set<number>([last.year, peak?.year, trough?.year].filter((y): y is number => y != null));
   for (const s of spikes) {
     if (narrated.has(s.year)) continue;
-    trendVerdict += ` ${s.year}년에는 격차가 급격히 ${s.up ? '확대' : '축소'}되었습니다.`;
+    trendVerdict += ` ${s.year}년에는 내 아파트 지수가 급격히 ${s.up ? '상승' : '하락'}했습니다.`;
   }
 
   return { trend, avgSlope, trendLabel, trendVerdict, reversalNote };
@@ -242,21 +242,21 @@ function buildOneLine(
     return `${compare.name}와(과) ${base.name}를(을) 비교할 충분한 데이터가 아직 없습니다.`;
   }
 
-  // 주어 = 비교 아파트. d = 내 아파트 상승률 - 비교 상승률 (양수면 내 아파트가 더 오름)
+  // 주어 = 내 아파트. d = 내 아파트 상승률 - 비교 상승률 (양수면 내 아파트가 더 오름)
   const d = base.risePct - compare.risePct;
   let risePart: string;
-  if (d <= -20) risePart = `내 아파트(${base.name}) 대비 상승폭이 크게 높으며`;
-  else if (d < -5) risePart = `내 아파트(${base.name})보다 다소 높은 상승률을 보였으며`;
-  else if (d <= 5) risePart = `내 아파트(${base.name})와 비슷한 수준의 상승률을 기록했으며`;
-  else if (d <= 20) risePart = `내 아파트(${base.name})보다 다소 낮은 상승률을 보였으며`;
-  else risePart = `내 아파트(${base.name}) 대비 상승폭이 크게 낮았으며`;
+  if (d > 20) risePart = `비교 아파트(${compare.name}) 대비 상승폭이 크게 높으며`;
+  else if (d > 5) risePart = `비교 아파트(${compare.name})보다 다소 높은 상승률을 보였으며`;
+  else if (d >= -5) risePart = `비교 아파트(${compare.name})와 비슷한 수준의 상승률을 기록했으며`;
+  else if (d >= -20) risePart = `비교 아파트(${compare.name})보다 다소 낮은 상승률을 보였으며`;
+  else risePart = `비교 아파트(${compare.name}) 대비 상승폭이 크게 낮았으며`;
 
   let trendPart: string;
-  if (trendInfo.trend === 'up') trendPart = '기준 대비 프리미엄이 점점 확대되는 추세입니다';
-  else if (trendInfo.trend === 'down') trendPart = '내 아파트가 격차를 좁혀가는 추세입니다';
+  if (trendInfo.trend === 'up') trendPart = '비교 아파트 대비 상대적으로 강세를 보이는 추세입니다';
+  else if (trendInfo.trend === 'down') trendPart = '비교 아파트 대비 상대적으로 약세를 보이는 추세입니다';
   else trendPart = '두 아파트가 비슷한 흐름으로 연동되고 있습니다';
 
-  let text = `비교 아파트(${compare.name})는 ${risePart}, ${trendPart}.`;
+  let text = `내 아파트(${base.name})는 ${risePart}, ${trendPart}.`;
   if (trendInfo.reversalNote) text += trendInfo.reversalNote;
   if (volumeWarning) text += ` ${volumeWarning}`;
   return text;

@@ -159,13 +159,13 @@ const CompareWithPresetPage: React.FC = () => {
       {pastYears.map((y) => (
         <React.Fragment key={y}>
           {priceTd(baseData.yearlyStats[y]?.avgPrice ?? null, baseData.yearlyStats[y]?.count ?? 0)}
-          {showIdx && idxTd(100)}
+          {showIdx && idxTd(calcIdx(baseData.yearlyStats[y]?.avgPrice ?? null, compareData?.yearlyStats[y]?.avgPrice ?? null))}
         </React.Fragment>
       ))}
       {priceTd(baseData.yearlyStats[curYear]?.avgPrice ?? null, baseData.yearlyStats[curYear]?.count ?? 0)}
-      {showIdx && idxTd(100)}
+      {showIdx && idxTd(calcIdx(baseData.yearlyStats[curYear]?.avgPrice ?? null, compareData?.yearlyStats[curYear]?.avgPrice ?? null))}
       {inputCell(baseData.yearlyStats[curYear]?.avgPrice ?? null, baseData.manualPrice, handleBaseManualPrice)}
-      {showIdx && idxTd(100)}
+      {showIdx && idxTd(calcIdx(effectivePrice(baseData, curYear), effectivePrice(compareData, curYear)))}
     </tr>
   );
 
@@ -186,7 +186,7 @@ const CompareWithPresetPage: React.FC = () => {
             <h2 className="text-base font-semibold text-gray-800">🏠 주요 아파트와 비교</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               {showIdx
-                ? '모든 지수는 내 아파트 기준(=100) · 행을 클릭하면 아래에서 AI 분석을 확인할 수 있습니다.'
+                ? '모든 지수는 선택한 주요 아파트 기준(=100) · 행을 클릭하면 아래에서 AI 분석을 확인할 수 있습니다.'
                 : '기준 아파트를 설정하면 지수와 AI 분석이 표시됩니다.'}
             </p>
             <p className="text-[11px] text-gray-400 mt-0.5">🕛 마지막 업데이트: {formatUpdatedAt(updatedAt)} (매일 자정 갱신)</p>
@@ -294,7 +294,7 @@ const CompareWithPresetPage: React.FC = () => {
                       const isSelected = r.info.id === selectedId;
                       const rowBg = isSelected ? 'bg-amber-50' : 'bg-white';
                       const api2026 = r.yearlyStats[curYear]?.avgPrice ?? null;
-                      const baseEff = (y: number) => effectivePrice(baseData, y);
+                      const refEff = (y: number) => effectivePrice(compareData, y); // 지수 기준(=100) = 선택한 주요 아파트
                       const eff2026 = effectivePrice(r, curYear);
                       return (
                         <tr
@@ -325,16 +325,16 @@ const CompareWithPresetPage: React.FC = () => {
                             return (
                               <React.Fragment key={y}>
                                 {priceTd(price, ys?.count ?? 0)}
-                                {showIdx && idxTd(calcIdx(price, baseEff(y)))}
+                                {showIdx && idxTd(calcIdx(price, refEff(y)))}
                               </React.Fragment>
                             );
                           })}
 
                           {priceTd(api2026, r.yearlyStats[curYear]?.count ?? 0)}
-                          {showIdx && idxTd(calcIdx(api2026, baseData?.yearlyStats[curYear]?.avgPrice ?? null))}
+                          {showIdx && idxTd(calcIdx(api2026, compareData?.yearlyStats[curYear]?.avgPrice ?? null))}
 
                           {inputCell(api2026, r.manualPrice, (p) => handleManualPrice(r.info.id, p))}
-                          {showIdx && idxTd(calcIdx(eff2026, effectivePrice(baseData, curYear)))}
+                          {showIdx && idxTd(calcIdx(eff2026, effectivePrice(compareData, curYear)))}
                         </tr>
                       );
                     })}
@@ -405,8 +405,8 @@ const CompareWithPresetPage: React.FC = () => {
                           {r.preset.label}
                         </div>
                         {showIdx && (
-                          <span className={`text-[12px] font-bold ${idxClass(calcIdx(effectivePrice(r, curYear), effectivePrice(baseData, curYear)))}`}>
-                            지수 {calcIdx(effectivePrice(r, curYear), effectivePrice(baseData, curYear)) ?? '-'}
+                          <span className={`text-[12px] font-bold ${idxClass(calcIdx(effectivePrice(r, curYear), effectivePrice(compareData, curYear)))}`}>
+                            지수 {calcIdx(effectivePrice(r, curYear), effectivePrice(compareData, curYear)) ?? '-'}
                           </span>
                         )}
                       </div>
@@ -459,7 +459,7 @@ const CompareWithPresetPage: React.FC = () => {
       </div>
 
       <p className="text-xs text-gray-400">
-        * 지수는 내 아파트 = 100 기준. {curYear}년은 실거래(API) 우선, 없으면 입력값을 사용합니다. AI 분석은 규칙 기반 자동 생성입니다.
+        * 지수는 선택한 비교 아파트 = 100 기준. {curYear}년은 실거래(API) 우선, 없으면 입력값을 사용합니다. AI 분석은 규칙 기반 자동 생성입니다.
       </p>
     </div>
   );
