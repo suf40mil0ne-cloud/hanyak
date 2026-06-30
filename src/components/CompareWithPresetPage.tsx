@@ -148,8 +148,11 @@ const CompareWithPresetPage: React.FC = () => {
 
   // 기준 아파트 행 (테이블/카드 최상단 고정)
   const baseDesktopRow = baseData && (
-    <tr className="bg-blue-100">
-      <td className="px-2 py-1.5 border-b border-gray-200 border-r border-gray-200 sticky left-0 z-10 bg-blue-100">
+    // [&>td]:sticky — tr 자체는 sticky 불가, td별로 일괄 적용해 "내 아파트" 행을 헤더 아래 고정
+    // top-[60px] = 헤더 1행(34px) + 헤더 2행(≈26px)
+    <tr className="bg-blue-100 [&>td]:sticky [&>td]:top-[60px] [&>td]:bg-blue-100 [&>td]:z-[15]">
+      {/* 좌측 고정 셀: left + top 양방향 sticky → z-[19]로 헤더(z-20) 바로 아래에 위치 */}
+      <td className="px-2 py-1.5 border-b border-gray-200 border-r border-gray-200 sticky left-0 z-[19] bg-blue-100">
         <span className="font-bold text-blue-900 text-[13px] leading-tight">📍 {baseData.info.name}</span>
         <div className="text-[10px] text-blue-500">{baseData.info.areaLabel} · {baseData.info.regionLabel}</div>
       </td>
@@ -349,9 +352,9 @@ const CompareWithPresetPage: React.FC = () => {
       {/* 모바일 카드 */}
       {!loading && results.length > 0 && (
         <div className="md:hidden space-y-2">
-          {/* 기준 아파트 카드 */}
+          {/* 기준 아파트 카드 — sticky로 카드 목록 최상단 고정 */}
           {baseData && (
-            <div className="rounded-lg shadow-sm bg-blue-50 p-3 border-2 border-blue-600">
+            <div className="rounded-lg shadow-sm bg-blue-50 p-3 border-2 border-blue-600 sticky top-0 z-10">
               <div className="flex items-center justify-between">
                 <div className="font-bold text-[13px] text-blue-900">📍 {baseData.info.name}</div>
                 <span className="text-[10px] text-white bg-blue-600 rounded px-1.5 py-0.5 font-semibold">내 아파트</span>
